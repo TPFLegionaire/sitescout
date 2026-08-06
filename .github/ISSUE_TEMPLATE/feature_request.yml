@@ -1,0 +1,19 @@
+name: Feature request
+description: Propose an improvement that preserves passive auditing and human review.
+title: "[Feature]: "
+labels: [enhancement]
+body:
+  - type: textarea
+    id: outcome
+    attributes:
+      label: User outcome
+      description: Describe the problem and who benefits.
+    validations:
+      required: true
+  - type: textarea
+    id: safety
+    attributes:
+      label: Safety and privacy impact
+      description: Explain network, evidence, identity and human-decision implications.
+    validations:
+      required: true

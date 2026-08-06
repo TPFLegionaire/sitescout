@@ -1,0 +1,37 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "sitescout",
+  "main": "./worker/index.ts",
+  "compatibility_date": "2026-08-02",
+  "compatibility_flags": ["nodejs_compat"],
+  "routes": [
+    {
+      "pattern": "sitescout.example.com",
+      "custom_domain": true
+    }
+  ],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "sitescout",
+      "database_id": "00000000-0000-4000-8000-000000000000",
+      "migrations_dir": "drizzle"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "EVIDENCE",
+      "bucket_name": "sitescout-evidence"
+    }
+  ],
+  "vars": {
+    "QUALITY_AUTH_MODE": "cloudflare-access",
+    "QUALITY_CF_ACCESS_TEAM_DOMAIN": "https://REPLACE_WITH_TEAM.cloudflareaccess.com",
+    "QUALITY_CF_ACCESS_AUD": "REPLACE_WITH_ACCESS_APPLICATION_AUDIENCE",
+    "QUALITY_PUBLIC_DEMO": "false",
+    "QUALITY_AI_ASSIST_ENABLED": "false"
+  },
+  "observability": {
+    "enabled": true
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "version": "sitescout-default-privacy-v1",
+  "mode": "dry-run",
+  "standardEvidenceRetentionDays": 180,
+  "securityEvidenceRetentionDays": null,
+  "maxEvidenceAssetsPerReport": 10,
+  "maxEvidenceBytesPerReport": 26214400,
+  "privacyAdministrator": "Unassigned - required before operational use",
+  "securityEscalationOwner": "Unassigned - required before operational use",
+  "backup": {
+    "frequency": "daily",
+    "retentionDays": 30,
+    "configured": false,
+    "restoreTested": false,
+    "owner": "Unassigned - required before operational use"
+  }
+}

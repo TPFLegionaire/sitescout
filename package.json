@@ -1,0 +1,49 @@
+{
+  "name": "sitescout",
+  "version": "0.2.0",
+  "private": true,
+  "license": "Apache-2.0",
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "scripts": {
+    "dev": "vinext dev",
+    "build": "vinext build",
+    "start": "vinext start",
+    "test": "npm run test:unit && npm run build && node --test tests/rendered-html.test.mjs",
+    "test:unit": "node --test tests/audit-engine.test.mjs tests/automated-groups.test.mjs tests/cloudflare-access.test.mjs tests/contracts.test.mjs tests/finding-guidance.test.mjs tests/pilot-metrics.test.mjs tests/staff-reporting.test.mjs",
+    "test:live": "node tests/live-api-smoke.mjs",
+    "audit:smoke": "node scripts/run-audit.mjs --profile smoke",
+    "audit:full": "node scripts/run-audit.mjs --profile full",
+    "lint": "eslint . --ignore-pattern dist --ignore-pattern .next"
+  },
+  "dependencies": {
+    "drizzle-orm": "0.45.2",
+    "jose": "^6.2.7",
+    "next": "16.2.12",
+    "react": "19.2.8",
+    "react-dom": "19.2.8"
+  },
+  "devDependencies": {
+    "@cloudflare/vite-plugin": "1.50.0",
+    "@cloudflare/workers-types": "^4.20260702.1",
+    "@tailwindcss/postcss": "4.2.1",
+    "@types/node": "22.19.19",
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3",
+    "@vitejs/plugin-react": "6.0.2",
+    "@vitejs/plugin-rsc": "0.5.26",
+    "eslint": "9.39.4",
+    "eslint-config-next": "16.2.12",
+    "react-server-dom-webpack": "19.2.8",
+    "tailwindcss": "4.2.1",
+    "typescript": "5.9.3",
+    "vinext": "0.0.50",
+    "vite": "8.2.0"
+  },
+  "overrides": {
+    "postcss": "8.5.18",
+    "sharp": "0.35.0"
+  },
+  "type": "module"
+}

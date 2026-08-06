@@ -1,0 +1,60 @@
+{
+  "targets": [
+    {
+      "id": "sample-shop-production",
+      "siteId": "sample-shop",
+      "name": "Sample Shop production",
+      "environment": "production",
+      "baseUrl": "https://example.com/",
+      "allowedHosts": ["example.com"],
+      "allowedPathPrefixes": ["/"],
+      "authorization": { "status": "synthetic_demo", "owner": "none", "note": "Replace with a target you are authorised to assess before running the network audit." },
+      "profiles": {
+        "smoke": { "pageLimit": 10, "concurrency": 2, "requestDelayMs": 300, "timeoutMs": 12000 },
+        "full": { "pageLimit": 100, "concurrency": 2, "requestDelayMs": 500, "timeoutMs": 15000 }
+      }
+    },
+    {
+      "id": "sample-shop-staging",
+      "siteId": "sample-shop",
+      "name": "Sample Shop staging",
+      "environment": "staging",
+      "baseUrl": "https://www.example.com/",
+      "allowedHosts": ["www.example.com"],
+      "allowedPathPrefixes": ["/"],
+      "authorization": { "status": "synthetic_demo", "owner": "none", "note": "Replace with a target you are authorised to assess before running the network audit." },
+      "profiles": {
+        "smoke": { "pageLimit": 10, "concurrency": 2, "requestDelayMs": 300, "timeoutMs": 12000 },
+        "full": { "pageLimit": 100, "concurrency": 2, "requestDelayMs": 500, "timeoutMs": 15000 }
+      }
+    },
+    {
+      "id": "sample-docs-production",
+      "siteId": "sample-docs",
+      "name": "Sample Documentation production",
+      "environment": "production",
+      "baseUrl": "https://example.org/",
+      "allowedHosts": ["example.org"],
+      "allowedPathPrefixes": ["/"],
+      "authorization": { "status": "synthetic_demo", "owner": "none", "note": "Replace with a target you are authorised to assess before running the network audit." },
+      "profiles": {
+        "smoke": { "pageLimit": 10, "concurrency": 2, "requestDelayMs": 300, "timeoutMs": 12000 },
+        "full": { "pageLimit": 100, "concurrency": 2, "requestDelayMs": 500, "timeoutMs": 15000 }
+      }
+    },
+    {
+      "id": "sample-docs-staging",
+      "siteId": "sample-docs",
+      "name": "Sample Documentation staging",
+      "environment": "staging",
+      "baseUrl": "https://www.example.org/",
+      "allowedHosts": ["www.example.org"],
+      "allowedPathPrefixes": ["/"],
+      "authorization": { "status": "synthetic_demo", "owner": "none", "note": "Replace with a target you are authorised to assess before running the network audit." },
+      "profiles": {
+        "smoke": { "pageLimit": 10, "concurrency": 2, "requestDelayMs": 300, "timeoutMs": 12000 },
+        "full": { "pageLimit": 100, "concurrency": 2, "requestDelayMs": 500, "timeoutMs": 15000 }
+      }
+    }
+  ]
+}

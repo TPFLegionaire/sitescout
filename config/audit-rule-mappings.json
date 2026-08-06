@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "targets": {
+    "sample-shop-production": {
+      "qa.security.csp-missing": "SHOP-H1",
+      "qa.seo.canonical-missing": "SHOP-M1",
+      "qa.accessibility.h1-missing": "SHOP-M2",
+      "qa.seo.title-long": "SHOP-L1"
+    },
+    "sample-shop-staging": {
+      "qa.security.csp-missing": "SHOP-H1",
+      "qa.seo.canonical-missing": "SHOP-M1",
+      "qa.accessibility.h1-missing": "SHOP-M2",
+      "qa.seo.title-long": "SHOP-L1"
+    },
+    "sample-docs-production": {
+      "qa.http.broken-link": "DOCS-H1",
+      "qa.accessibility.image-alt-missing": "DOCS-M1",
+      "qa.security.server-version": "DOCS-L1"
+    },
+    "sample-docs-staging": {
+      "qa.http.broken-link": "DOCS-H1",
+      "qa.accessibility.image-alt-missing": "DOCS-M1",
+      "qa.security.server-version": "DOCS-L1"
+    }
+  }
+}

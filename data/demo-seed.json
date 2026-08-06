@@ -1,0 +1,302 @@
+{
+  "schemaVersion": 1,
+  "product": {
+    "name": "SiteScout",
+    "tagline": "Evidence-led website quality operations",
+    "organization": {
+      "id": "demo-portfolio",
+      "slug": "demo-portfolio",
+      "name": "Example Portfolio",
+      "brandLabel": "DEMO PORTFOLIO"
+    },
+    "sites": [
+      {
+        "id": "sample-shop",
+        "slug": "sample-shop",
+        "name": "Sample Shop"
+      },
+      {
+        "id": "sample-docs",
+        "slug": "sample-docs",
+        "name": "Sample Documentation"
+      }
+    ]
+  },
+  "targets": [
+    {
+      "id": "sample-shop-production",
+      "siteId": "sample-shop",
+      "name": "Sample Shop production",
+      "environment": "production",
+      "baseUrl": "https://example.com/",
+      "allowedHost": "example.com",
+      "allowedPathPrefix": "/"
+    },
+    {
+      "id": "sample-shop-staging",
+      "siteId": "sample-shop",
+      "name": "Sample Shop staging",
+      "environment": "staging",
+      "baseUrl": "https://www.example.com/",
+      "allowedHost": "www.example.com",
+      "allowedPathPrefix": "/"
+    },
+    {
+      "id": "sample-docs-production",
+      "siteId": "sample-docs",
+      "name": "Sample Documentation production",
+      "environment": "production",
+      "baseUrl": "https://example.org/",
+      "allowedHost": "example.org",
+      "allowedPathPrefix": "/"
+    },
+    {
+      "id": "sample-docs-staging",
+      "siteId": "sample-docs",
+      "name": "Sample Documentation staging",
+      "environment": "staging",
+      "baseUrl": "https://www.example.org/",
+      "allowedHost": "www.example.org",
+      "allowedPathPrefix": "/"
+    }
+  ],
+  "sourceAudit": {
+    "date": "2026-08-01",
+    "environment": "synthetic demonstration",
+    "coverage": {
+      "statusVerifiedUrls": 24,
+      "parsedPages": 20,
+      "imagesChecked": 18,
+      "performancePages": 4,
+      "browserScenarios": 6,
+      "languagePages": 12,
+      "pdpImagesReviewed": 6,
+      "blogArticlesChecked": 4
+    }
+  },
+  "warnings": [
+    "All bundled records are synthetic examples using reserved domains.",
+    "Automation does not establish visual correctness, business meaning or exploitability."
+  ],
+  "runs": [
+    {
+      "id": "run-sample-shop-production-v1",
+      "targetId": "sample-shop-production",
+      "runType": "synthetic",
+      "status": "complete",
+      "startedAt": "2026-08-01T08:00:00.000Z",
+      "completedAt": "2026-08-01T08:04:00.000Z",
+      "rulesetVersion": "sitescout-rules-v1",
+      "profileVersion": "demo-safe-crawl-v1",
+      "browser": "HTTP fixture",
+      "viewport": "not-applicable",
+      "locale": "en-GB",
+      "pageLimit": 12,
+      "pagesAttempted": 12,
+      "pagesCompleted": 12,
+      "comparable": true,
+      "comparisonReason": null,
+      "coverage": { "pageLimit": 12, "pagesAttempted": 12, "pagesCompleted": 12, "htmlPages": 10, "linksDiscovered": 32, "imagesChecked": 10 },
+      "limitations": ["Synthetic demonstration data; no live website was scanned."],
+      "triggeredBy": "Bundled demonstration seed",
+      "createdAt": "2026-08-01T08:04:00.000Z"
+    },
+    {
+      "id": "run-sample-shop-staging-v1",
+      "targetId": "sample-shop-staging",
+      "runType": "synthetic",
+      "status": "complete",
+      "startedAt": "2026-08-01T08:10:00.000Z",
+      "completedAt": "2026-08-01T08:13:00.000Z",
+      "rulesetVersion": "sitescout-rules-v1",
+      "profileVersion": "demo-safe-crawl-v1",
+      "browser": "HTTP fixture",
+      "viewport": "not-applicable",
+      "locale": "en-GB",
+      "pageLimit": 12,
+      "pagesAttempted": 12,
+      "pagesCompleted": 12,
+      "comparable": true,
+      "comparisonReason": null,
+      "coverage": { "pageLimit": 12, "pagesAttempted": 12, "pagesCompleted": 12, "htmlPages": 10, "linksDiscovered": 31, "imagesChecked": 10 },
+      "limitations": ["Synthetic demonstration data; no live website was scanned."],
+      "triggeredBy": "Bundled demonstration seed",
+      "createdAt": "2026-08-01T08:13:00.000Z"
+    },
+    {
+      "id": "run-sample-docs-production-v1",
+      "targetId": "sample-docs-production",
+      "runType": "synthetic",
+      "status": "complete",
+      "startedAt": "2026-08-01T08:20:00.000Z",
+      "completedAt": "2026-08-01T08:22:00.000Z",
+      "rulesetVersion": "sitescout-rules-v1",
+      "profileVersion": "demo-safe-crawl-v1",
+      "browser": "HTTP fixture",
+      "viewport": "not-applicable",
+      "locale": "en-GB",
+      "pageLimit": 8,
+      "pagesAttempted": 8,
+      "pagesCompleted": 8,
+      "comparable": true,
+      "comparisonReason": null,
+      "coverage": { "pageLimit": 8, "pagesAttempted": 8, "pagesCompleted": 8, "htmlPages": 7, "linksDiscovered": 20, "imagesChecked": 8 },
+      "limitations": ["Synthetic demonstration data; no live website was scanned."],
+      "triggeredBy": "Bundled demonstration seed",
+      "createdAt": "2026-08-01T08:22:00.000Z"
+    },
+    {
+      "id": "run-sample-docs-staging-v1",
+      "targetId": "sample-docs-staging",
+      "runType": "synthetic",
+      "status": "complete",
+      "startedAt": "2026-08-01T08:30:00.000Z",
+      "completedAt": "2026-08-01T08:32:00.000Z",
+      "rulesetVersion": "sitescout-rules-v1",
+      "profileVersion": "demo-safe-crawl-v1",
+      "browser": "HTTP fixture",
+      "viewport": "not-applicable",
+      "locale": "en-GB",
+      "pageLimit": 8,
+      "pagesAttempted": 8,
+      "pagesCompleted": 8,
+      "comparable": true,
+      "comparisonReason": null,
+      "coverage": { "pageLimit": 8, "pagesAttempted": 8, "pagesCompleted": 8, "htmlPages": 7, "linksDiscovered": 20, "imagesChecked": 8 },
+      "limitations": ["Synthetic demonstration data; no live website was scanned."],
+      "triggeredBy": "Bundled demonstration seed",
+      "createdAt": "2026-08-01T08:32:00.000Z"
+    }
+  ],
+  "baselines": [
+    { "id": "baseline-sample-shop-production-v1", "targetId": "sample-shop-production", "runId": "run-sample-shop-production-v1", "version": 1, "reason": "Synthetic production baseline", "approvedBy": "demo-administrator", "createdAt": "2026-08-01T08:05:00.000Z" },
+    { "id": "baseline-sample-shop-staging-v1", "targetId": "sample-shop-staging", "runId": "run-sample-shop-staging-v1", "version": 1, "reason": "Synthetic staging baseline", "approvedBy": "demo-administrator", "createdAt": "2026-08-01T08:14:00.000Z" },
+    { "id": "baseline-sample-docs-production-v1", "targetId": "sample-docs-production", "runId": "run-sample-docs-production-v1", "version": 1, "reason": "Synthetic production baseline", "approvedBy": "demo-administrator", "createdAt": "2026-08-01T08:23:00.000Z" },
+    { "id": "baseline-sample-docs-staging-v1", "targetId": "sample-docs-staging", "runId": "run-sample-docs-staging-v1", "version": 1, "reason": "Synthetic staging baseline", "approvedBy": "demo-administrator", "createdAt": "2026-08-01T08:33:00.000Z" }
+  ],
+  "findings": [
+    {
+      "id": "SHOP-H1",
+      "siteId": "sample-shop",
+      "displayKey": "SHOP-H1",
+      "title": "Content Security Policy is missing",
+      "severity": "high",
+      "category": "Security",
+      "recommendation": "Define and test a restrictive Content Security Policy before enforcing it.",
+      "acceptanceCriteria": "The approved policy is present on representative production and staging pages without breaking required resources.",
+      "states": [
+        { "targetId": "sample-shop-production", "status": "open", "delta": "Present in production", "lastRunId": "run-sample-shop-production-v1", "currentEvidence": "Representative production responses contain no Content-Security-Policy header.", "updatedAt": "2026-08-01T08:04:00.000Z" },
+        { "targetId": "sample-shop-staging", "status": "resolved", "delta": "Fixed in staging", "lastRunId": "run-sample-shop-staging-v1", "currentEvidence": "The staging fixture includes the approved policy.", "updatedAt": "2026-08-01T08:13:00.000Z" }
+      ]
+    },
+    {
+      "id": "SHOP-M1",
+      "siteId": "sample-shop",
+      "displayKey": "SHOP-M1",
+      "title": "Canonical URL is missing from product pages",
+      "severity": "medium",
+      "category": "SEO",
+      "recommendation": "Add one absolute, self-consistent canonical URL to every indexable product page.",
+      "acceptanceCriteria": "A bounded re-test confirms one valid canonical on every sampled product page.",
+      "states": [
+        { "targetId": "sample-shop-production", "status": "open", "delta": "Repeated across product pages", "lastRunId": "run-sample-shop-production-v1", "currentEvidence": "Two synthetic product pages omit a canonical declaration.", "updatedAt": "2026-08-01T08:04:00.000Z" },
+        { "targetId": "sample-shop-staging", "status": "partial", "delta": "Partially addressed", "lastRunId": "run-sample-shop-staging-v1", "currentEvidence": "The homepage is corrected but one product fixture remains without a canonical.", "updatedAt": "2026-08-01T08:13:00.000Z" }
+      ]
+    },
+    {
+      "id": "SHOP-M2",
+      "siteId": "sample-shop",
+      "displayKey": "SHOP-M2",
+      "title": "Primary heading is missing",
+      "severity": "medium",
+      "category": "Accessibility",
+      "recommendation": "Add one clear primary heading that describes the page purpose.",
+      "acceptanceCriteria": "Production and staging each expose one meaningful H1 on the affected page.",
+      "states": [
+        { "targetId": "sample-shop-production", "status": "resolved", "delta": "Verified", "lastRunId": "run-sample-shop-production-v1", "currentEvidence": "The synthetic re-test records one meaningful H1.", "updatedAt": "2026-08-01T08:04:00.000Z" },
+        { "targetId": "sample-shop-staging", "status": "resolved", "delta": "Verified", "lastRunId": "run-sample-shop-staging-v1", "currentEvidence": "The synthetic re-test records one meaningful H1.", "updatedAt": "2026-08-01T08:13:00.000Z" }
+      ]
+    },
+    {
+      "id": "SHOP-L1",
+      "siteId": "sample-shop",
+      "displayKey": "SHOP-L1",
+      "title": "Page title is unusually long",
+      "severity": "low",
+      "category": "SEO",
+      "recommendation": "Shorten the title while preserving the page purpose and distinguishing terms.",
+      "acceptanceCriteria": "The title is concise, unique and suitable for search-result display.",
+      "states": [
+        { "targetId": "sample-shop-production", "status": "open", "delta": "Unchanged", "lastRunId": "run-sample-shop-production-v1", "currentEvidence": "The synthetic title is 92 characters long.", "updatedAt": "2026-08-01T08:04:00.000Z" },
+        { "targetId": "sample-shop-staging", "status": "open", "delta": "Unchanged", "lastRunId": "run-sample-shop-staging-v1", "currentEvidence": "The synthetic title is 92 characters long.", "updatedAt": "2026-08-01T08:13:00.000Z" }
+      ]
+    },
+    {
+      "id": "DOCS-H1",
+      "siteId": "sample-docs",
+      "displayKey": "DOCS-H1",
+      "title": "Primary navigation contains a broken link",
+      "severity": "high",
+      "category": "Availability",
+      "recommendation": "Repair the destination and add a link-integrity regression check.",
+      "acceptanceCriteria": "The destination returns the intended content and the navigation path passes a bounded re-test.",
+      "states": [
+        { "targetId": "sample-docs-production", "status": "open", "delta": "Production failure", "lastRunId": "run-sample-docs-production-v1", "currentEvidence": "The synthetic support link returns 404.", "updatedAt": "2026-08-01T08:22:00.000Z" },
+        { "targetId": "sample-docs-staging", "status": "resolved", "delta": "Fixed in staging", "lastRunId": "run-sample-docs-staging-v1", "currentEvidence": "The staging fixture returns the intended destination.", "updatedAt": "2026-08-01T08:32:00.000Z" }
+      ]
+    },
+    {
+      "id": "DOCS-M1",
+      "siteId": "sample-docs",
+      "displayKey": "DOCS-M1",
+      "title": "Informative image has no text alternative",
+      "severity": "medium",
+      "category": "Accessibility",
+      "recommendation": "Provide a concise alternative that communicates the image purpose.",
+      "acceptanceCriteria": "The affected image has a useful alternative and decorative images remain correctly empty.",
+      "states": [
+        { "targetId": "sample-docs-production", "status": "partial", "delta": "One image remains", "lastRunId": "run-sample-docs-production-v1", "currentEvidence": "One of two synthetic diagrams still lacks an alternative.", "updatedAt": "2026-08-01T08:22:00.000Z" },
+        { "targetId": "sample-docs-staging", "status": "resolved", "delta": "Fixed in staging", "lastRunId": "run-sample-docs-staging-v1", "currentEvidence": "Both diagrams have reviewed alternatives.", "updatedAt": "2026-08-01T08:32:00.000Z" }
+      ]
+    },
+    {
+      "id": "DOCS-M2",
+      "siteId": "sample-docs",
+      "displayKey": "DOCS-M2",
+      "title": "Support wording is out of date",
+      "severity": "medium",
+      "category": "Content",
+      "recommendation": "Replace the obsolete instruction and add an accountable content owner.",
+      "acceptanceCriteria": "The published wording matches the current support route and has an identified review owner.",
+      "states": [
+        { "targetId": "sample-docs-production", "status": "resolved", "delta": "Verified", "lastRunId": "run-sample-docs-production-v1", "currentEvidence": "The synthetic production copy now points to the current route.", "updatedAt": "2026-08-01T08:22:00.000Z" },
+        { "targetId": "sample-docs-staging", "status": "resolved", "delta": "Verified", "lastRunId": "run-sample-docs-staging-v1", "currentEvidence": "The synthetic staging copy matches production.", "updatedAt": "2026-08-01T08:32:00.000Z" }
+      ]
+    },
+    {
+      "id": "DOCS-L1",
+      "siteId": "sample-docs",
+      "displayKey": "DOCS-L1",
+      "title": "Response exposes an exact server version",
+      "severity": "low",
+      "category": "Security",
+      "recommendation": "Remove unnecessary version detail from public response headers and error pages.",
+      "acceptanceCriteria": "Representative responses disclose no exact platform or server version.",
+      "states": [
+        { "targetId": "sample-docs-production", "status": "open", "delta": "Unchanged", "lastRunId": "run-sample-docs-production-v1", "currentEvidence": "The synthetic response contains an exact server version.", "updatedAt": "2026-08-01T08:22:00.000Z" },
+        { "targetId": "sample-docs-staging", "status": "open", "delta": "Unchanged", "lastRunId": "run-sample-docs-staging-v1", "currentEvidence": "The synthetic response contains an exact server version.", "updatedAt": "2026-08-01T08:32:00.000Z" }
+      ]
+    }
+  ],
+  "observations": [
+    { "id": "obs-shop-h1", "targetId": "sample-shop-production", "runId": "run-sample-shop-production-v1", "findingId": "SHOP-H1", "suggestedFindingId": "SHOP-H1", "sourceChannel": "automated", "url": "https://example.com/", "title": "Content Security Policy is missing", "description": "A representative response contains no Content-Security-Policy header.\n\nRule: qa.security.csp-missing", "expected": "A reviewed defence-in-depth policy", "actual": "No policy header", "reviewStatus": "confirmed", "createdBy": "Bundled demonstration seed", "createdAt": "2026-08-01T08:04:00.000Z" },
+    { "id": "obs-shop-m1-a", "targetId": "sample-shop-production", "runId": "run-sample-shop-production-v1", "findingId": "SHOP-M1", "suggestedFindingId": "SHOP-M1", "sourceChannel": "automated", "url": "https://example.com/products/widget-a", "title": "Canonical URL is missing", "description": "The document does not declare a canonical URL.\n\nRule: qa.seo.canonical-missing", "expected": "One absolute self-consistent canonical", "actual": "No canonical link", "reviewStatus": "confirmed", "createdBy": "Bundled demonstration seed", "createdAt": "2026-08-01T08:04:00.000Z" },
+    { "id": "obs-shop-m1-b", "targetId": "sample-shop-production", "runId": "run-sample-shop-production-v1", "findingId": null, "suggestedFindingId": "SHOP-M1", "sourceChannel": "automated", "url": "https://example.com/products/widget-b", "title": "Canonical URL is missing", "description": "The document does not declare a canonical URL.\n\nRule: qa.seo.canonical-missing", "expected": "One absolute self-consistent canonical", "actual": "No canonical link", "reviewStatus": "pending", "createdBy": "Bundled demonstration seed", "createdAt": "2026-08-01T08:04:10.000Z" },
+    { "id": "obs-shop-m2", "targetId": "sample-shop-production", "runId": "run-sample-shop-production-v1", "findingId": "SHOP-M2", "suggestedFindingId": "SHOP-M2", "sourceChannel": "automated", "url": "https://example.com/search", "title": "Primary heading is missing", "description": "The page has no primary heading.\n\nRule: qa.accessibility.h1-missing", "expected": "One meaningful primary heading", "actual": "Zero H1 headings before correction", "reviewStatus": "confirmed", "createdBy": "Bundled demonstration seed", "createdAt": "2026-08-01T08:04:20.000Z" },
+    { "id": "obs-shop-l1", "targetId": "sample-shop-production", "runId": "run-sample-shop-production-v1", "findingId": "SHOP-L1", "suggestedFindingId": "SHOP-L1", "sourceChannel": "automated", "url": "https://example.com/catalogue", "title": "Page title is unusually long", "description": "The title may be truncated in search results.\n\nRule: qa.seo.title-long", "expected": "A concise page-specific title", "actual": "92 characters", "reviewStatus": "confirmed", "createdBy": "Bundled demonstration seed", "createdAt": "2026-08-01T08:04:30.000Z" },
+    { "id": "obs-docs-h1", "targetId": "sample-docs-production", "runId": "run-sample-docs-production-v1", "findingId": "DOCS-H1", "suggestedFindingId": "DOCS-H1", "sourceChannel": "automated", "url": "https://example.org/support", "title": "Primary navigation contains a broken link", "description": "A synthetic navigation destination returned 404.\n\nRule: qa.http.broken-link", "expected": "The intended support page", "actual": "HTTP 404", "reviewStatus": "confirmed", "createdBy": "Bundled demonstration seed", "createdAt": "2026-08-01T08:22:00.000Z" },
+    { "id": "obs-docs-m1", "targetId": "sample-docs-production", "runId": "run-sample-docs-production-v1", "findingId": "DOCS-M1", "suggestedFindingId": "DOCS-M1", "sourceChannel": "automated", "url": "https://example.org/guides", "title": "Informative image has no text alternative", "description": "One synthetic diagram has no useful alternative.\n\nRule: qa.accessibility.image-alt-missing", "expected": "A useful text alternative", "actual": "No alt attribute", "reviewStatus": "confirmed", "createdBy": "Bundled demonstration seed", "createdAt": "2026-08-01T08:22:10.000Z" },
+    { "id": "obs-docs-m2", "targetId": "sample-docs-production", "runId": null, "findingId": "DOCS-M2", "suggestedFindingId": "DOCS-M2", "sourceChannel": "human", "url": "https://example.org/help", "title": "Support wording is out of date", "description": "A synthetic staff reviewer noticed an obsolete support instruction.", "expected": "The current support route", "actual": "An obsolete route was displayed before correction", "reviewStatus": "confirmed", "createdBy": "reporter@example.invalid", "createdAt": "2026-08-01T08:25:00.000Z" },
+    { "id": "obs-docs-l1", "targetId": "sample-docs-production", "runId": "run-sample-docs-production-v1", "findingId": "DOCS-L1", "suggestedFindingId": "DOCS-L1", "sourceChannel": "automated", "url": "https://example.org/", "title": "Response exposes an exact server version", "description": "A synthetic response reveals an exact version.\n\nRule: qa.security.server-version", "expected": "Minimum necessary response metadata", "actual": "Exact version present", "reviewStatus": "confirmed", "createdBy": "Bundled demonstration seed", "createdAt": "2026-08-01T08:22:20.000Z" }
+  ]
+}
