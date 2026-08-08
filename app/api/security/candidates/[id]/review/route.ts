@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { requireQualityCapability } from "@/app/auth";
 import { ensureDatabase } from "@/db/bootstrap";
 import { getD1 } from "@/db";
@@ -16,6 +17,8 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     if (!body) throw Object.assign(new Error("A JSON request body is required."), { status: 400 });
     const decision = requiredText(body.decision, "Decision", 40);
     const note = optionalText(body.note, 2000);
+    const reviewMinutesRaw = Number(body.reviewMinutes);
+    const reviewMinutes = Number.isFinite(reviewMinutesRaw) && reviewMinutesRaw > 0 && reviewMinutesRaw <= 600 ? reviewMinutesRaw : null;
 
     const d1 = getD1();
     const candidate = await d1
@@ -42,6 +45,9 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
       d1
         .prepare(`INSERT INTO activity_log (event_type, entity_type, entity_id, actor, detail_json, created_at) VALUES ('security_candidate_reviewed', 'security_candidate', ?, ?, ?, ?)`)
         .bind(id, user.email, JSON.stringify({ decision, reviewStatus: resolution.reviewStatus, awaitingSecondCheck: resolution.awaitingSecondCheck }), now),
+      d1
+        .prepare(`INSERT INTO pilot_events (id, event_type, observation_id, actor_email, duration_ms, detail_json, created_at) VALUES (?, 'security_candidate_reviewed', NULL, ?, ?, ?, ?)`)
+        .bind(randomUUID(), user.email, reviewMinutes != null ? Math.round(reviewMinutes * 60000) : null, JSON.stringify({ candidateId: id, severity: candidate.severity, decision, reviewStatus: resolution.reviewStatus }), now),
     ]);
 
     return Response.json({ ok: true, reviewStatus: resolution.reviewStatus, awaitingSecondCheck: resolution.awaitingSecondCheck }, { headers: { "cache-control": "no-store" } });

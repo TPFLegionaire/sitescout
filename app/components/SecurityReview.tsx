@@ -51,7 +51,7 @@ export function SecurityReview({ user, initial }: { user: QualityUser; initial: 
       const response = await fetch(`/api/security/candidates/${candidateId}/review`, {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ decision: form.get("decision"), note: form.get("note") }),
+        body: JSON.stringify({ decision: form.get("decision"), note: form.get("note"), reviewMinutes: form.get("reviewMinutes") || undefined }),
       });
       const payload = (await response.json()) as { ok?: boolean; error?: string; reviewStatus?: string; awaitingSecondCheck?: boolean };
       if (!response.ok || !payload.ok) throw new Error(payload.error ?? "The review could not be recorded.");
@@ -88,6 +88,8 @@ export function SecurityReview({ user, initial }: { user: QualityUser; initial: 
           </p>
         </section>
 
+        <Scorecard metrics={view.metrics} />
+
         {notice ? <div className={`notice ${notice.kind}`} role="status"><span>{notice.kind === "ok" ? "✓" : "!"}</span>{notice.text}<button onClick={() => setNotice(null)} aria-label="Dismiss">×</button></div> : null}
 
         {view.imports.length ? (
@@ -98,6 +100,52 @@ export function SecurityReview({ user, initial }: { user: QualityUser; initial: 
       </div>
     </main>
   );
+}
+
+function Scorecard({ metrics }: { metrics: SecurityReviewView["metrics"] }) {
+  return (
+    <section className="panel" style={{ padding: 20 }}>
+      <div className="panel-heading"><div><p className="kicker">EVALUATION SCORECARD</p><h2>Is Strix worth continuing?</h2></div></div>
+      <div style={{ display: "grid", gap: 10, gridTemplateColumns: "repeat(auto-fit, minmax(148px, 1fr))", marginTop: 14 }}>
+        <Tile label="Imports" value={String(metrics.importCount)} detail={metrics.emptyImports ? `${metrics.emptyImports} empty · incomplete` : "candidates returned"} />
+        <Tile label="Candidates" value={String(metrics.total)} detail={`${metrics.reviewedFinal} finalised`} />
+        <Tile label="Pending" value={String(metrics.pending)} detail="awaiting first review" />
+        <Tile label="2nd check" value={String(metrics.awaitingSecondCheck)} detail="high/critical to confirm" tone={metrics.awaitingSecondCheck ? "#9a6a12" : undefined} />
+      </div>
+      <div style={{ display: "grid", gap: 10, gridTemplateColumns: "repeat(auto-fit, minmax(148px, 1fr))", marginTop: 10 }}>
+        <Tile label="False-positive rate" value={pct(metrics.rates.false_positive)} detail="of finalised reviews" tone="#b4462f" />
+        <Tile label="Reproducible rate" value={pct(metrics.rates.reproducible)} detail="actionable" tone="#1f8a5b" />
+        <Tile label="Duplicate rate" value={pct(metrics.rates.duplicate)} detail="of finalised" />
+        <Tile label="Unsafe evidence" value={String(metrics.byStatus.unsafe_evidence ?? 0)} detail="oversensitive" tone={(metrics.byStatus.unsafe_evidence ?? 0) ? "#b4462f" : undefined} />
+      </div>
+      <div style={{ marginTop: 12, fontSize: 12, color: "var(--muted)", lineHeight: 1.6 }}>
+        <strong>Review burden:</strong>{" "}
+        {metrics.reviewTime.medianPerCandidate != null ? `${round(metrics.reviewTime.medianPerCandidate)} min median per candidate` : "no timed reviews yet"}
+        {metrics.reviewTime.perAccepted != null ? ` · ${round(metrics.reviewTime.perAccepted)} min per accepted issue` : ""}
+        {metrics.reviewTime.totalMinutes ? ` · ${round(metrics.reviewTime.totalMinutes)} min logged` : ""}
+        {metrics.backlog.projectedMinutes != null ? ` · backlog ≈ ${round(metrics.backlog.projectedMinutes)} min (${metrics.backlog.pending} pending × median)` : ""}
+        {". "}Enter review minutes when classifying to build this forecast.
+      </div>
+    </section>
+  );
+}
+
+function Tile({ label, value, detail, tone }: { label: string; value: string; detail: string; tone?: string }) {
+  return (
+    <div style={{ border: "1px solid var(--line)", borderRadius: 10, padding: "12px 14px" }}>
+      <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: ".06em", color: "#747c93" }}>{label}</div>
+      <div style={{ marginTop: 4, fontSize: 24, letterSpacing: "-.03em", fontVariantNumeric: "tabular-nums", color: tone ?? "inherit" }}>{value}</div>
+      <div style={{ fontSize: 10, color: "#8c93a5", marginTop: 2 }}>{detail}</div>
+    </div>
+  );
+}
+
+function pct(value: number): string {
+  return `${Math.round((value ?? 0) * 100)}%`;
+}
+
+function round(value: number): string {
+  return String(Math.round(value));
 }
 
 function ImportBlock({ run, candidates, busyId, onReview }: { run: SecurityImportRunRow; candidates: SecurityCandidateRow[]; busyId: string | null; onReview: (event: FormEvent<HTMLFormElement>, candidateId: string) => void }) {
@@ -150,7 +198,8 @@ function CandidateCard({ candidate, busy, onReview }: { candidate: SecurityCandi
           <option value="" disabled>Classify…</option>
           {DECISIONS.map((decision) => <option key={decision.id} value={decision.id}>{decision.label}</option>)}
         </select>
-        <input name="note" placeholder="Note (optional)" maxLength={2000} style={{ flex: "1 1 220px" }} />
+        <input name="reviewMinutes" type="number" min={0} max={600} step={1} placeholder="min" aria-label="Review minutes" title="Review time in minutes (builds the burden forecast)" style={{ width: 74 }} />
+        <input name="note" placeholder="Note (optional)" maxLength={2000} style={{ flex: "1 1 200px" }} />
         <button className="primary small" disabled={busy} type="submit">{busy ? "Saving…" : "Record"}</button>
       </form>
     </article>

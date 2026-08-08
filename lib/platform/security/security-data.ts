@@ -1,4 +1,6 @@
 import { getD1 } from "@/db";
+import { computeSecurityMetrics } from "./metrics-core.mjs";
+import type { SecurityMetrics } from "./metrics-core.mjs";
 
 export type SecurityImportRunRow = {
   id: string;
@@ -39,7 +41,8 @@ export type SecurityCandidateRow = {
   createdAt: string;
 };
 
-export type SecurityReviewView = { imports: SecurityImportRunRow[]; candidates: SecurityCandidateRow[] };
+export type { SecurityMetrics } from "./metrics-core.mjs";
+export type SecurityReviewView = { imports: SecurityImportRunRow[]; candidates: SecurityCandidateRow[]; metrics: SecurityMetrics };
 
 /** Import runs and their candidates for the review queue. Sanitised fields only. */
 export async function loadSecurityReview(): Promise<SecurityReviewView> {
@@ -64,5 +67,16 @@ export async function loadSecurityReview(): Promise<SecurityReviewView> {
       .all<SecurityCandidateRow>();
     candidates = rows.results;
   }
-  return { imports: imports.results, candidates };
+
+  const reviewEventRows = await d1
+    .prepare("SELECT duration_ms AS durationMs FROM pilot_events WHERE event_type = 'security_candidate_reviewed'")
+    .all<{ durationMs: number | null }>();
+  const reviewEvents = reviewEventRows.results.map((row) => ({ minutes: typeof row.durationMs === "number" ? row.durationMs / 60000 : null }));
+
+  const metrics: SecurityMetrics = computeSecurityMetrics(
+    candidates.map((candidate) => ({ severity: candidate.severity, reviewStatus: candidate.reviewStatus })),
+    imports.results.map((run) => ({ candidateCount: run.candidateCount })),
+    reviewEvents,
+  );
+  return { imports: imports.results, candidates, metrics };
 }
