@@ -15,6 +15,12 @@ CREATE TABLE IF NOT EXISTS seo_snapshot_runs (
   idempotency_key TEXT NOT NULL,
   cost_estimate REAL NOT NULL DEFAULT 0,
   cost_actual REAL,
+  cost_reserved REAL NOT NULL DEFAULT 0,
+  attempt_count INTEGER NOT NULL DEFAULT 0,
+  lease_expires_at TEXT,
+  provider_dispatched_at TEXT,
+  failure_stage TEXT,
+  provider_reference TEXT,
   coverage_json TEXT NOT NULL,
   limitations_json TEXT NOT NULL,
   artifact_storage_key TEXT,
@@ -31,7 +37,7 @@ CREATE INDEX IF NOT EXISTS idx_seo_snapshot_runs_site_requested
 ON seo_snapshot_runs(site_id, requested_at);
 
 CREATE INDEX IF NOT EXISTS idx_seo_snapshot_runs_status
-ON seo_snapshot_runs(status, requested_at);
+ON seo_snapshot_runs(status, lease_expires_at, requested_at);
 
 CREATE TABLE IF NOT EXISTS seo_snapshot_metrics (
   id TEXT PRIMARY KEY,

@@ -34,12 +34,20 @@ for (const path of ["/report", "/my-reports"]) {
   assert.equal(new URL(response.headers.get("location"), baseUrl).pathname, "/");
 }
 
+const seoPage = await fetch(`${baseUrl}/seo`, { redirect: "manual" });
+assert.ok([301, 302, 303, 307, 308].includes(seoPage.status));
+assert.equal(new URL(seoPage.headers.get("location"), baseUrl).pathname, "/access-denied");
+
+const seoRead = await json("/api/seo/snapshots?siteId=sample-shop");
+assert.equal(seoRead.response.status, 403, "public preview must not expose provider evidence or requester identities");
+
 const blockedMutations = [
   ["/api/observations", { method: "POST" }],
   ["/api/findings/SHOP-H1", { method: "PATCH", headers: { "content-type": "application/json" }, body: "{}" }],
   ["/api/audits/import", { method: "POST", headers: { "content-type": "application/json" }, body: "{}" }],
   ["/api/baselines", { method: "POST", headers: { "content-type": "application/json" }, body: "{}" }],
   ["/api/automated-groups/review", { method: "POST", headers: { "content-type": "application/json" }, body: "{}" }],
+  ["/api/seo/snapshots", { method: "POST", headers: { "content-type": "application/json" }, body: "{}" }],
 ];
 for (const [path, init] of blockedMutations) {
   const result = await json(path, init);

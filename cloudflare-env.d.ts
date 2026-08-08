@@ -19,6 +19,9 @@ declare namespace Cloudflare {
     QUALITY_SEO_ENABLED?: string;
     QUALITY_SEO_PER_OPERATION_CAP_USD?: string;
     QUALITY_SEO_MONTHLY_CAP_USD?: string;
+    QUALITY_SEO_COUNTRY?: string;
+    QUALITY_SEO_LANGUAGE?: string;
+    QUALITY_SEO_LOCATION_CODE?: string;
     DATAFORSEO_LOGIN?: string;
     DATAFORSEO_PASSWORD?: string;
     DATAFORSEO_BASE_URL?: string;

@@ -65,7 +65,7 @@ test("authentication, privacy and deployment boundaries fail closed", async () =
     readFile(new URL("lib/platform/cloudflare-access-core.mjs", root), "utf8"), readFile(new URL("wrangler.sitescout.example.jsonc", root), "utf8"),
   ]);
   assert.doesNotMatch(health, /requireQuality|getQualityUser/);
-  assert.match(health, /schemaVersion === "4"/);
+  assert.match(health, /schemaVersion === "6"/);
   assert.match(health, /counts\.organizations/);
   assert.match(dashboard, /requireQualityCapability\("view_operator"\)/);
   assert.match(observation, /requireQualityCapability\("submit_report"\)/);

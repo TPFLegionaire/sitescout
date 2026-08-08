@@ -358,6 +358,12 @@ export const seoSnapshotRuns = sqliteTable(
     idempotencyKey: text("idempotency_key").notNull(),
     costEstimate: real("cost_estimate").notNull().default(0),
     costActual: real("cost_actual"),
+    costReserved: real("cost_reserved").notNull().default(0),
+    attemptCount: integer("attempt_count").notNull().default(0),
+    leaseExpiresAt: text("lease_expires_at"),
+    providerDispatchedAt: text("provider_dispatched_at"),
+    failureStage: text("failure_stage"),
+    providerReference: text("provider_reference"),
     coverageJson: text("coverage_json").notNull(),
     limitationsJson: text("limitations_json").notNull(),
     artifactStorageKey: text("artifact_storage_key"),
@@ -369,7 +375,7 @@ export const seoSnapshotRuns = sqliteTable(
   (table) => [
     uniqueIndex("idx_seo_snapshot_runs_idempotency").on(table.idempotencyKey),
     index("idx_seo_snapshot_runs_site_requested").on(table.siteId, table.requestedAt),
-    index("idx_seo_snapshot_runs_status").on(table.status, table.requestedAt),
+    index("idx_seo_snapshot_runs_status").on(table.status, table.leaseExpiresAt, table.requestedAt),
   ],
 );
 

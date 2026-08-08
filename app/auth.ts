@@ -13,16 +13,16 @@ export type AuthenticatedQualityUser = {
 };
 
 export type QualityRole = "management_viewer" | "reporter" | "validator" | "finding_owner" | "security_reviewer" | "administrator";
-export type QualityCapability = "submit_report" | "review_reports" | "manage_findings" | "manage_baselines" | "view_operator" | "review_security";
+export type QualityCapability = "submit_report" | "review_reports" | "manage_findings" | "manage_baselines" | "view_operator" | "view_seo" | "capture_seo" | "review_security";
 export type QualityUser = AuthenticatedQualityUser & { role: QualityRole; localPilot: boolean };
 
 const roleCapabilities: Record<QualityRole, ReadonlySet<QualityCapability>> = {
-  management_viewer: new Set(["view_operator"]),
+  management_viewer: new Set(["view_operator", "view_seo"]),
   reporter: new Set(["submit_report"]),
-  validator: new Set(["submit_report", "review_reports", "view_operator"]),
-  finding_owner: new Set(["submit_report", "manage_findings", "view_operator"]),
-  security_reviewer: new Set(["view_operator", "review_security"]),
-  administrator: new Set(["submit_report", "review_reports", "manage_findings", "manage_baselines", "view_operator", "review_security"]),
+  validator: new Set(["submit_report", "review_reports", "view_operator", "view_seo"]),
+  finding_owner: new Set(["submit_report", "manage_findings", "view_operator", "view_seo"]),
+  security_reviewer: new Set(["review_security"]),
+  administrator: new Set(["submit_report", "review_reports", "manage_findings", "manage_baselines", "view_operator", "view_seo", "capture_seo", "review_security"]),
 };
 
 const INTERNAL_ID_HEADER = "x-sitescout-authenticated-user-id";

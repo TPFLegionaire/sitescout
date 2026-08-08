@@ -85,6 +85,7 @@ Do not commit completed Wrangler files, allowlists, Access audience values, API 
 - `docs/architecture.md` — data and trust boundaries.
 - `docs/responsible-use.md` — authorised passive-audit policy.
 - `docs/privacy-operations.md` — screenshot retention and incident gates.
+- `docs/seo-snapshot-pilot.md` — DataForSEO access, profile, cost and evidence controls.
 - `docs/site-scout-staff-reporting-plan.md` — operating workflow and deferred recognition.
 - `docs/cloudflare-independent-deployment.md` — secure deployment sequence.
 - `SECURITY.md` — vulnerability reporting and supported security boundary.
