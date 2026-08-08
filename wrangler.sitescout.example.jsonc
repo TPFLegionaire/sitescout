@@ -24,12 +24,18 @@
       "bucket_name": "sitescout-evidence"
     }
   ],
+  "triggers": {
+    "crons": ["17 3 * * *"]
+  },
   "vars": {
     "QUALITY_AUTH_MODE": "cloudflare-access",
     "QUALITY_CF_ACCESS_TEAM_DOMAIN": "https://REPLACE_WITH_TEAM.cloudflareaccess.com",
     "QUALITY_CF_ACCESS_AUD": "REPLACE_WITH_ACCESS_APPLICATION_AUDIENCE",
     "QUALITY_PUBLIC_DEMO": "false",
-    "QUALITY_AI_ASSIST_ENABLED": "false"
+    "QUALITY_AI_ASSIST_ENABLED": "false",
+    "QUALITY_SECURITY_IMPORT_TARGET_IDS": "",
+    "QUALITY_SECURITY_ARTIFACT_RETENTION_DAYS": "30",
+    "QUALITY_SEO_ENABLED": "false"
   },
   "observability": {
     "enabled": true

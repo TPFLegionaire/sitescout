@@ -2,6 +2,7 @@
 import { handleImageOptimization, DEFAULT_DEVICE_SIZES, DEFAULT_IMAGE_SIZES } from "vinext/server/image-optimization";
 import handler from "vinext/server/app-router-entry";
 import { isCloudflareAccessMode, verifyCloudflareAccessToken } from "../lib/platform/cloudflare-access-core.mjs";
+import { purgeExpiredSecurityArtifacts } from "../lib/platform/security/security-retention";
 
 interface Env {
   ASSETS: Fetcher;
@@ -109,6 +110,13 @@ const worker = {
 
     const response = await handler.fetch(authenticatedRequest, env, ctx);
     return secureResponse(response, url);
+  },
+  async scheduled(_controller: ScheduledController, env: Env, ctx: ExecutionContext): Promise<void> {
+    ctx.waitUntil(
+      purgeExpiredSecurityArtifacts(env.DB, env.EVIDENCE, { actor: "system:security-retention", limit: 250 }).then((result) => {
+        console.log("SiteScout security artifact retention completed", result);
+      }),
+    );
   },
 };
 

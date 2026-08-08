@@ -40,10 +40,10 @@ test("review-time stats use only timed events and the median is robust", () => {
   assert.equal(metrics.reviewTime.perAccepted, 60); // 60 minutes / 1 reproducible
 });
 
-test("backlog forecast projects pending review from the median", () => {
+test("backlog forecast includes first reviews and outstanding second checks", () => {
   const metrics = computeSecurityMetrics(candidates, imports, reviewEvents);
-  assert.equal(metrics.backlog.pending, 1);
-  assert.equal(metrics.backlog.projectedMinutes, 20); // 1 pending x median 20
+  assert.equal(metrics.backlog.pending, 2);
+  assert.equal(metrics.backlog.projectedMinutes, 40); // 2 outstanding actions x median 20
 });
 
 test("empty imports are counted as incomplete coverage", () => {

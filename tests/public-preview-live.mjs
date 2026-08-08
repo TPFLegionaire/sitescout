@@ -41,6 +41,14 @@ assert.equal(new URL(seoPage.headers.get("location"), baseUrl).pathname, "/acces
 const seoRead = await json("/api/seo/snapshots?siteId=sample-shop");
 assert.equal(seoRead.response.status, 403, "public preview must not expose provider evidence or requester identities");
 
+const securityPage = await fetch(`${baseUrl}/security`, { redirect: "manual" });
+assert.ok([301, 302, 303, 307, 308].includes(securityPage.status));
+assert.equal(new URL(securityPage.headers.get("location"), baseUrl).pathname, "/access-denied");
+const securityRead = await json("/api/security/imports");
+assert.equal(securityRead.response.status, 403, "public preview must not expose imported security evidence or reviewer identities");
+const securityArtifact = await fetch(`${baseUrl}/api/security/artifacts/not-a-run`);
+assert.equal(securityArtifact.status, 403, "public preview must not retrieve restricted raw artifacts");
+
 const blockedMutations = [
   ["/api/observations", { method: "POST" }],
   ["/api/findings/SHOP-H1", { method: "PATCH", headers: { "content-type": "application/json" }, body: "{}" }],
@@ -48,6 +56,9 @@ const blockedMutations = [
   ["/api/baselines", { method: "POST", headers: { "content-type": "application/json" }, body: "{}" }],
   ["/api/automated-groups/review", { method: "POST", headers: { "content-type": "application/json" }, body: "{}" }],
   ["/api/seo/snapshots", { method: "POST", headers: { "content-type": "application/json" }, body: "{}" }],
+  ["/api/security/imports", { method: "POST" }],
+  ["/api/security/candidates/not-a-candidate/review", { method: "POST", headers: { "content-type": "application/json" }, body: "{}" }],
+  ["/api/security/artifacts/retention", { method: "POST" }],
 ];
 for (const [path, init] of blockedMutations) {
   const result = await json(path, init);

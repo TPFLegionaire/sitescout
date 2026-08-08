@@ -9,9 +9,9 @@ export const dynamic = "force-dynamic";
 
 export default async function SecurityReviewPage() {
   const user = await requireQualityUser("/security");
-  if (!canQuality(user.role, "review_security")) redirect("/");
+  if (user.identitySource === "public-preview" || !canQuality(user.role, "review_security")) redirect("/access-denied?return_to=%2Fsecurity");
   await ensureDatabase();
   await recordQualityUser(user);
-  const initial = await loadSecurityReview();
+  const initial = await loadSecurityReview(user);
   return <SecurityReview user={user} initial={initial} />;
 }

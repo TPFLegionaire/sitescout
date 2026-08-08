@@ -18,7 +18,7 @@ async function json(path, init = {}) {
 const health = await json("/api/health");
 assert.equal(health.response.status, 200);
 assert.equal(health.payload.ok, true);
-assert.equal(health.payload.database.schemaVersion, "6");
+assert.equal(health.payload.database.schemaVersion, "7");
 assert.ok(health.payload.database.counts.organizations >= 1);
 assert.ok(health.payload.database.counts.sites >= 2);
 assert.ok(health.payload.database.counts.findings >= 8);
