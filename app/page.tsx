@@ -8,6 +8,7 @@ export const dynamic = "force-dynamic";
 
 export default async function Home() {
   const user = await requireQualityUser("/");
+  if (user.role === "security_reviewer") redirect("/security");
   if (user.role !== "management_viewer") await recordQualityUser(user);
   if (user.role === "reporter") redirect("/report");
   const data = await getDashboardData(user);

@@ -11,9 +11,10 @@ The repository contains synthetic demonstration data only. The two sample websit
 - A canonical finding register with plain-language security, customer and reputation impact guidance.
 - A separate human-report queue with screenshot paste, crop, blur, solid redaction and private storage.
 - Reporter conversations, requests for more information, notifications and a fix/re-test/closure workflow.
-- Reporter, Validator, Finding Owner, Administrator and read-only Management Viewer roles.
+- Reporter, Validator, Finding Owner, Security Reviewer, Administrator and read-only Management Viewer roles.
 - Human-approved duplicate suggestions and grouped automated review.
 - Versioned baselines, attributable decisions, activity history, privacy controls and pilot metrics.
+- Optional read-only SEO snapshots and an import-only Strix evaluation, both isolated from canonical findings.
 
 SiteScout is deliberately not a penetration-testing tool. The audit runner permits only `GET` and `HEAD`, exact configured HTTPS hosts and path prefixes, bounded redirects, bounded concurrency and public IP destinations. Use it only on websites you own or are authorised to assess.
 
@@ -31,6 +32,7 @@ Open:
 - Control room: `http://localhost:3000/`
 - Staff reporter: `http://localhost:3000/report`
 - Reporter status: `http://localhost:3000/my-reports`
+- Restricted security review: `http://localhost:3000/security`
 - Readiness: `http://localhost:3000/api/health`
 
 Development mode creates an explicitly local Administrator session. Production has no such fallback and fails closed unless Cloudflare Access is configured or the optional read-only demonstration mode is deliberately enabled.
@@ -86,6 +88,7 @@ Do not commit completed Wrangler files, allowlists, Access audience values, API 
 - `docs/responsible-use.md` — authorised passive-audit policy.
 - `docs/privacy-operations.md` — screenshot retention and incident gates.
 - `docs/seo-snapshot-pilot.md` — DataForSEO access, profile, cost and evidence controls.
+- `docs/security-import-pilot.md` — Strix import, sanitisation, reviewer separation and raw-artifact controls.
 - `docs/site-scout-staff-reporting-plan.md` — operating workflow and deferred recognition.
 - `docs/cloudflare-independent-deployment.md` — secure deployment sequence.
 - `SECURITY.md` — vulnerability reporting and supported security boundary.

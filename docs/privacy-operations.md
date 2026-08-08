@@ -1,6 +1,6 @@
 # Site Scout privacy operations
 
-Status: proposed controls implemented in dry-run mode. No evidence deletion is enabled.
+Status: staff-screenshot controls remain in dry-run mode. Strix raw-import artifacts use a separate active retention policy described below.
 
 ## Current technical controls
 
@@ -16,12 +16,13 @@ Status: proposed controls implemented in dry-run mode. No evidence deletion is e
 | Control | Proposed value | Current status |
 |---|---:|---|
 | Standard screenshot retention | 180 days | Preview only |
-| Restricted security retention | No automatic expiry | Manual decision required |
+| Restricted staff screenshot retention | No automatic expiry | Manual decision required |
+| Raw Strix import retention | 30 days by default (1–365 configurable) | Daily purge and Administrator deletion enabled |
 | Backup frequency | Daily | Not configured |
 | Backup retention | 30 days | Not configured |
 | Restore exercise | Before pilot launch and quarterly | Not yet tested |
 
-The dashboard reports how many assets would expire under the proposal, how many are protected as security evidence, how much newly tracked storage is used and how many legacy assets lack size metadata. It never performs the deletion.
+The dashboard reports how many staff screenshot assets would expire under the proposal, how many are protected as security evidence, how much newly tracked storage is used and how many legacy assets lack size metadata. It does not delete staff screenshot evidence. Raw Strix imports are separate: private R2 objects are removed by the Worker retention job or an Administrator action, while sanitised candidates and review history are retained.
 
 ## Decisions required before activation
 
@@ -30,7 +31,8 @@ The dashboard reports how many assets would expire under the proposal, how many 
 3. Define the route for correcting or deleting an accidental sensitive upload.
 4. Confirm the backup location, access list, encryption responsibility and restore procedure.
 5. Run a documented restore exercise using non-production data.
-6. Obtain explicit approval before changing the policy from `dry-run` to an active deletion mode.
+6. Obtain explicit approval before changing the staff screenshot policy from `dry-run` to an active deletion mode.
+7. Reconcile R2 versioning, backups and exported copies with the Strix raw-artifact retention period.
 
 ## Incident handling
 

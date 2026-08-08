@@ -1,7 +1,7 @@
 import { getD1 } from "./index";
 import seedPayload from "../data/demo-seed.json";
 
-const SCHEMA_VERSION = "6";
+const SCHEMA_VERSION = "7";
 const SEED_VERSION = "sitescout-demo-v1";
 const SEEDED_AT = "2026-08-01T08:00:00.000Z";
 
@@ -28,6 +28,9 @@ const baseSchemaStatements = [
   `CREATE TABLE IF NOT EXISTS activity_log (id INTEGER PRIMARY KEY AUTOINCREMENT, event_type TEXT NOT NULL, entity_type TEXT NOT NULL, entity_id TEXT NOT NULL, actor TEXT NOT NULL, detail_json TEXT NOT NULL, created_at TEXT NOT NULL)`,
   `CREATE TABLE IF NOT EXISTS seo_snapshot_runs (id TEXT PRIMARY KEY, organization_id TEXT NOT NULL, site_id TEXT NOT NULL, target_id TEXT NOT NULL, source TEXT NOT NULL DEFAULT 'dataforseo', operation TEXT NOT NULL, status TEXT NOT NULL, dimensions_json TEXT NOT NULL, idempotency_key TEXT NOT NULL, cost_estimate REAL NOT NULL DEFAULT 0, cost_actual REAL, cost_reserved REAL NOT NULL DEFAULT 0, attempt_count INTEGER NOT NULL DEFAULT 0, lease_expires_at TEXT, provider_dispatched_at TEXT, failure_stage TEXT, provider_reference TEXT, coverage_json TEXT NOT NULL, limitations_json TEXT NOT NULL, artifact_storage_key TEXT, artifact_sha256 TEXT, requested_by TEXT NOT NULL, requested_at TEXT NOT NULL, completed_at TEXT)`,
   `CREATE TABLE IF NOT EXISTS seo_snapshot_metrics (id TEXT PRIMARY KEY, snapshot_run_id TEXT NOT NULL, metric_key TEXT NOT NULL, dimension_json TEXT NOT NULL, value_json TEXT NOT NULL, captured_at TEXT NOT NULL)`,
+  `CREATE TABLE IF NOT EXISTS security_import_runs (id TEXT PRIMARY KEY, organization_id TEXT NOT NULL, site_id TEXT NOT NULL, target_id TEXT NOT NULL, source TEXT NOT NULL DEFAULT 'strix', source_version TEXT, target_label TEXT NOT NULL, scan_mode TEXT, image_digest TEXT, model TEXT, status TEXT NOT NULL, coverage_json TEXT NOT NULL, limitations_json TEXT NOT NULL, artifact_storage_key TEXT, artifact_sha256 TEXT NOT NULL, candidate_count INTEGER NOT NULL DEFAULT 0, imported_by TEXT NOT NULL, retention_until TEXT NOT NULL, legal_hold INTEGER NOT NULL DEFAULT 0, deleted_at TEXT, created_at TEXT NOT NULL)`,
+  `CREATE TABLE IF NOT EXISTS security_candidates (id TEXT PRIMARY KEY, import_run_id TEXT NOT NULL, external_id TEXT NOT NULL DEFAULT '', title TEXT NOT NULL, severity TEXT NOT NULL, cwe TEXT NOT NULL DEFAULT '', cvss_vector TEXT NOT NULL DEFAULT '', endpoint TEXT NOT NULL DEFAULT '', method TEXT NOT NULL DEFAULT '', summary TEXT NOT NULL DEFAULT '', remediation TEXT NOT NULL DEFAULT '', fingerprint TEXT NOT NULL, sanitization_status TEXT NOT NULL DEFAULT 'clean', sanitization_flags_json TEXT NOT NULL DEFAULT '[]', review_status TEXT NOT NULL DEFAULT 'pending', first_reviewer TEXT, reviewed_by TEXT, second_check_by TEXT, review_note TEXT, reviewed_at TEXT, created_at TEXT NOT NULL)`,
+  `CREATE TABLE IF NOT EXISTS security_candidate_reviews (id TEXT PRIMARY KEY, candidate_id TEXT NOT NULL, stage TEXT NOT NULL, decision TEXT NOT NULL, reviewer_email TEXT NOT NULL, note TEXT NOT NULL DEFAULT '', review_minutes REAL, created_at TEXT NOT NULL)`,
 ];
 
 const indexStatements = [
@@ -68,6 +71,15 @@ const indexStatements = [
   `CREATE INDEX IF NOT EXISTS idx_seo_snapshot_runs_site_requested ON seo_snapshot_runs(site_id, requested_at)`,
   `CREATE INDEX IF NOT EXISTS idx_seo_snapshot_runs_status ON seo_snapshot_runs(status, lease_expires_at, requested_at)`,
   `CREATE INDEX IF NOT EXISTS idx_seo_snapshot_metrics_run ON seo_snapshot_metrics(snapshot_run_id)`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS idx_security_import_runs_scope_sha ON security_import_runs(organization_id, target_id, artifact_sha256)`,
+  `CREATE INDEX IF NOT EXISTS idx_security_import_runs_scope_created ON security_import_runs(organization_id, site_id, created_at)`,
+  `CREATE INDEX IF NOT EXISTS idx_security_import_runs_retention ON security_import_runs(retention_until, legal_hold, deleted_at)`,
+  `CREATE INDEX IF NOT EXISTS idx_security_candidates_run ON security_candidates(import_run_id)`,
+  `CREATE INDEX IF NOT EXISTS idx_security_candidates_fingerprint ON security_candidates(fingerprint)`,
+  `CREATE INDEX IF NOT EXISTS idx_security_candidates_review ON security_candidates(review_status)`,
+  `CREATE INDEX IF NOT EXISTS idx_security_candidates_sanitization ON security_candidates(sanitization_status)`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS idx_security_candidate_reviews_stage ON security_candidate_reviews(candidate_id, stage)`,
+  `CREATE INDEX IF NOT EXISTS idx_security_candidate_reviews_created ON security_candidate_reviews(candidate_id, created_at)`,
 ];
 
 async function runBatches(statements: D1PreparedStatement[], size = 40) {
@@ -87,6 +99,8 @@ async function migrateLegacyShape() {
   const d1 = getD1();
   await d1.prepare("DROP INDEX IF EXISTS idx_targets_environment").run();
   await d1.prepare("DROP INDEX IF EXISTS idx_seo_snapshot_runs_status").run();
+  await d1.prepare("DROP INDEX IF EXISTS idx_security_import_runs_sha").run();
+  await d1.prepare("DROP INDEX IF EXISTS idx_security_import_runs_created").run();
   await ensureColumn("targets", "site_id", "ALTER TABLE targets ADD COLUMN site_id TEXT");
   await ensureColumn("findings", "site_id", "ALTER TABLE findings ADD COLUMN site_id TEXT");
   await ensureColumn("findings", "display_key", "ALTER TABLE findings ADD COLUMN display_key TEXT");
@@ -96,8 +110,27 @@ async function migrateLegacyShape() {
   await ensureColumn("seo_snapshot_runs", "provider_dispatched_at", "ALTER TABLE seo_snapshot_runs ADD COLUMN provider_dispatched_at TEXT");
   await ensureColumn("seo_snapshot_runs", "failure_stage", "ALTER TABLE seo_snapshot_runs ADD COLUMN failure_stage TEXT");
   await ensureColumn("seo_snapshot_runs", "provider_reference", "ALTER TABLE seo_snapshot_runs ADD COLUMN provider_reference TEXT");
+  await ensureColumn("security_import_runs", "organization_id", "ALTER TABLE security_import_runs ADD COLUMN organization_id TEXT");
+  await ensureColumn("security_import_runs", "site_id", "ALTER TABLE security_import_runs ADD COLUMN site_id TEXT");
+  await ensureColumn("security_import_runs", "target_id", "ALTER TABLE security_import_runs ADD COLUMN target_id TEXT");
+  await ensureColumn("security_import_runs", "retention_until", "ALTER TABLE security_import_runs ADD COLUMN retention_until TEXT");
+  await ensureColumn("security_import_runs", "legal_hold", "ALTER TABLE security_import_runs ADD COLUMN legal_hold INTEGER NOT NULL DEFAULT 0");
+  await ensureColumn("security_import_runs", "deleted_at", "ALTER TABLE security_import_runs ADD COLUMN deleted_at TEXT");
+  await ensureColumn("security_candidates", "sanitization_status", "ALTER TABLE security_candidates ADD COLUMN sanitization_status TEXT NOT NULL DEFAULT 'clean'");
+  await ensureColumn("security_candidates", "sanitization_flags_json", "ALTER TABLE security_candidates ADD COLUMN sanitization_flags_json TEXT NOT NULL DEFAULT '[]'");
   await d1.prepare("UPDATE seo_snapshot_runs SET status = 'failed_provider', failure_stage = 'provider' WHERE status = 'failed'").run();
   await d1.prepare("UPDATE seo_snapshot_runs SET attempt_count = 1 WHERE attempt_count = 0 AND status <> 'abandoned'").run();
+
+  const legacySecurityImport = await d1.prepare("SELECT id FROM security_import_runs WHERE organization_id IS NULL OR site_id IS NULL OR target_id IS NULL LIMIT 1").first();
+  if (legacySecurityImport) {
+    await d1.batch([
+      d1.prepare("INSERT OR IGNORE INTO organizations (id, slug, name, product_name, brand_label, created_at) VALUES ('legacy-security-import', 'legacy-security-import', 'Legacy security imports', 'SiteScout', 'LEGACY SECURITY IMPORTS', ?)").bind(SEEDED_AT),
+      d1.prepare("INSERT OR IGNORE INTO sites (id, organization_id, slug, name, active, created_at) VALUES ('legacy-security-site', 'legacy-security-import', 'legacy-security-site', 'Legacy security imports', 0, ?)").bind(SEEDED_AT),
+      d1.prepare("INSERT OR IGNORE INTO targets (id, site_id, name, environment, base_url, allowed_host, allowed_path_prefix, active, created_at) VALUES ('legacy-security-artifact', 'legacy-security-site', 'Unscoped legacy security artifact', 'legacy', 'https://legacy.invalid', 'legacy.invalid', '/', 0, ?)").bind(SEEDED_AT),
+      d1.prepare("UPDATE security_candidates SET sanitization_status = 'quarantined', sanitization_flags_json = '[\"legacy_unsanitized_import\"]' WHERE import_run_id IN (SELECT id FROM security_import_runs WHERE organization_id IS NULL OR site_id IS NULL OR target_id IS NULL)"),
+      d1.prepare("UPDATE security_import_runs SET organization_id = 'legacy-security-import', site_id = 'legacy-security-site', target_id = 'legacy-security-artifact', retention_until = COALESCE(retention_until, created_at) WHERE organization_id IS NULL OR site_id IS NULL OR target_id IS NULL"),
+    ]);
+  }
 
   const legacyTarget = await d1.prepare("SELECT id FROM targets WHERE site_id IS NULL OR site_id = '' LIMIT 1").first();
   const legacyFinding = await d1.prepare("SELECT id FROM findings WHERE site_id IS NULL OR site_id = '' OR display_key IS NULL OR display_key = '' LIMIT 1").first();

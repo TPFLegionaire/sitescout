@@ -391,3 +391,86 @@ export const seoSnapshotMetrics = sqliteTable(
   },
   (table) => [index("idx_seo_snapshot_metrics_run").on(table.snapshotRunId)],
 );
+
+export const securityImportRuns = sqliteTable(
+  "security_import_runs",
+  {
+    id: text("id").primaryKey(),
+    organizationId: text("organization_id").notNull(),
+    siteId: text("site_id").notNull(),
+    targetId: text("target_id").notNull(),
+    source: text("source").notNull().default("strix"),
+    sourceVersion: text("source_version"),
+    targetLabel: text("target_label").notNull(),
+    scanMode: text("scan_mode"),
+    imageDigest: text("image_digest"),
+    model: text("model"),
+    status: text("status").notNull(),
+    coverageJson: text("coverage_json").notNull(),
+    limitationsJson: text("limitations_json").notNull(),
+    artifactStorageKey: text("artifact_storage_key"),
+    artifactSha256: text("artifact_sha256").notNull(),
+    candidateCount: integer("candidate_count").notNull().default(0),
+    importedBy: text("imported_by").notNull(),
+    retentionUntil: text("retention_until").notNull(),
+    legalHold: integer("legal_hold").notNull().default(0),
+    deletedAt: text("deleted_at"),
+    createdAt: text("created_at").notNull(),
+  },
+  (table) => [
+    uniqueIndex("idx_security_import_runs_scope_sha").on(table.organizationId, table.targetId, table.artifactSha256),
+    index("idx_security_import_runs_scope_created").on(table.organizationId, table.siteId, table.createdAt),
+    index("idx_security_import_runs_retention").on(table.retentionUntil, table.legalHold, table.deletedAt),
+  ],
+);
+
+export const securityCandidates = sqliteTable(
+  "security_candidates",
+  {
+    id: text("id").primaryKey(),
+    importRunId: text("import_run_id").notNull(),
+    externalId: text("external_id").notNull().default(""),
+    title: text("title").notNull(),
+    severity: text("severity").notNull(),
+    cwe: text("cwe").notNull().default(""),
+    cvssVector: text("cvss_vector").notNull().default(""),
+    endpoint: text("endpoint").notNull().default(""),
+    method: text("method").notNull().default(""),
+    summary: text("summary").notNull().default(""),
+    remediation: text("remediation").notNull().default(""),
+    fingerprint: text("fingerprint").notNull(),
+    sanitizationStatus: text("sanitization_status").notNull().default("clean"),
+    sanitizationFlagsJson: text("sanitization_flags_json").notNull().default("[]"),
+    reviewStatus: text("review_status").notNull().default("pending"),
+    firstReviewer: text("first_reviewer"),
+    reviewedBy: text("reviewed_by"),
+    secondCheckBy: text("second_check_by"),
+    reviewNote: text("review_note"),
+    reviewedAt: text("reviewed_at"),
+    createdAt: text("created_at").notNull(),
+  },
+  (table) => [
+    index("idx_security_candidates_run").on(table.importRunId),
+    index("idx_security_candidates_fingerprint").on(table.fingerprint),
+    index("idx_security_candidates_review").on(table.reviewStatus),
+    index("idx_security_candidates_sanitization").on(table.sanitizationStatus),
+  ],
+);
+
+export const securityCandidateReviews = sqliteTable(
+  "security_candidate_reviews",
+  {
+    id: text("id").primaryKey(),
+    candidateId: text("candidate_id").notNull(),
+    stage: text("stage").notNull(),
+    decision: text("decision").notNull(),
+    reviewerEmail: text("reviewer_email").notNull(),
+    note: text("note").notNull().default(""),
+    reviewMinutes: real("review_minutes"),
+    createdAt: text("created_at").notNull(),
+  },
+  (table) => [
+    uniqueIndex("idx_security_candidate_reviews_stage").on(table.candidateId, table.stage),
+    index("idx_security_candidate_reviews_created").on(table.candidateId, table.createdAt),
+  ],
+);

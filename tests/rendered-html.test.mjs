@@ -25,6 +25,8 @@ test("build emits the application and required workflow routes", async () => {
     "app/api/automated-groups/review/route.ts", "app/api/notifications/read/route.ts",
     "app/api/evidence/[id]/route.ts", "app/api/findings/[id]/route.ts", "app/api/audits/import/route.ts",
     "app/api/baselines/route.ts", "app/report/page.tsx", "app/my-reports/page.tsx",
+    "app/api/security/imports/route.ts", "app/api/security/candidates/[id]/review/route.ts",
+    "app/api/security/artifacts/[id]/route.ts", "app/api/security/artifacts/retention/route.ts", "app/security/page.tsx",
   ];
   await Promise.all(routeFiles.map((file) => access(new URL(file, root))));
 });
@@ -65,7 +67,7 @@ test("authentication, privacy and deployment boundaries fail closed", async () =
     readFile(new URL("lib/platform/cloudflare-access-core.mjs", root), "utf8"), readFile(new URL("wrangler.sitescout.example.jsonc", root), "utf8"),
   ]);
   assert.doesNotMatch(health, /requireQuality|getQualityUser/);
-  assert.match(health, /schemaVersion === "6"/);
+  assert.match(health, /schemaVersion === "7"/);
   assert.match(health, /counts\.organizations/);
   assert.match(dashboard, /requireQualityCapability\("view_operator"\)/);
   assert.match(observation, /requireQualityCapability\("submit_report"\)/);
@@ -74,8 +76,8 @@ test("authentication, privacy and deployment boundaries fail closed", async () =
   assert.match(review, /site_id = \?/);
   assert.match(status, /requireQualityRole\("validator", "finding_owner", "administrator"\)/);
   assert.match(evidence, /requireQualityRole\("reporter", "validator", "finding_owner", "administrator"\)/);
-  for (const role of ["management_viewer", "reporter", "validator", "finding_owner", "administrator"]) assert.match(auth, new RegExp(role));
-  for (const allowlist of ["QUALITY_MANAGEMENT_VIEWER_EMAILS", "QUALITY_REPORTER_EMAILS", "QUALITY_VALIDATOR_EMAILS", "QUALITY_FINDING_OWNER_EMAILS", "QUALITY_ADMIN_EMAILS"]) assert.match(auth, new RegExp(allowlist));
+  for (const role of ["management_viewer", "reporter", "validator", "finding_owner", "security_reviewer", "administrator"]) assert.match(auth, new RegExp(role));
+  for (const allowlist of ["QUALITY_MANAGEMENT_VIEWER_EMAILS", "QUALITY_REPORTER_EMAILS", "QUALITY_VALIDATOR_EMAILS", "QUALITY_FINDING_OWNER_EMAILS", "QUALITY_SECURITY_REVIEWER_EMAILS", "QUALITY_ADMIN_EMAILS"]) assert.match(auth, new RegExp(allowlist));
   assert.match(auth, /QUALITY_PUBLIC_DEMO/);
   assert.match(auth, /cloudflare-access/);
   assert.match(auth, /process\.env\.NODE_ENV === "production"/);

@@ -216,6 +216,7 @@ export function QualityPlatform({ initialData, user }: { initialData: DashboardD
           <div className="top-actions">
             {user.role !== "management_viewer" ? <Link className="target-link report-link" href="/report"><span>Report issue</span><i aria-hidden="true">+</i></Link> : null}
             <Link className="target-link" href="/seo"><span>SEO snapshots</span><i aria-hidden="true">↗</i></Link>
+            {user.role === "administrator" || user.role === "security_reviewer" ? <Link className="target-link" href="/security"><span>Security review</span><i aria-hidden="true">↗</i></Link> : null}
             <label className="site-switch"><span className="sr-only">Website</span><select aria-label="Website" value={selectedSiteId} onChange={(event) => selectSite(event.target.value)}>{data.sites.map((site) => <option key={site.id} value={site.id}>{site.name}</option>)}</select></label>
             <div className="environment-switch" aria-label="Environment">
               {(["production", "staging"] as Environment[]).map((name) => <button key={name} className={environment === name ? "active" : ""} onClick={() => setEnvironment(name)}><span />{name}</button>)}
@@ -532,7 +533,7 @@ function formatPercent(value: number | null) { return value === null ? "—" : `
 function formatBytes(value: number) { if (value < 1024) return `${value} B`; if (value < 1024 * 1024) return `${Math.round(value / 1024)} KB`; return `${Math.round((value / (1024 * 1024)) * 10) / 10} MB`; }
 function initials(value: string) { return value.split(/\s+|@/).filter(Boolean).slice(0, 2).map((part) => part[0]?.toUpperCase()).join(""); }
 function assetUrl(asset: Asset) { return asset.publicUrl ?? `/api/evidence/${asset.id}`; }
-function roleLabel(role: QualityUser["role"]) { if (role === "management_viewer") return "Management Viewer"; return role === "finding_owner" ? "Finding Owner" : `${role[0].toUpperCase()}${role.slice(1)}`; }
+function roleLabel(role: QualityUser["role"]) { if (role === "management_viewer") return "Management Viewer"; if (role === "security_reviewer") return "Security Reviewer"; return role === "finding_owner" ? "Finding Owner" : `${role[0].toUpperCase()}${role.slice(1)}`; }
 function reviewSuccess(decision: ReviewDecision) {
   if (decision === "reject") return "The observation was not accepted and remains in the attributable audit trail.";
   if (decision === "accept_new") return "A new canonical finding was created and the reporter was notified.";

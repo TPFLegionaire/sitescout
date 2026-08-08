@@ -12,8 +12,8 @@ export type AuthenticatedQualityUser = {
   identitySource: QualityIdentitySource;
 };
 
-export type QualityRole = "management_viewer" | "reporter" | "validator" | "finding_owner" | "administrator";
-export type QualityCapability = "submit_report" | "review_reports" | "manage_findings" | "manage_baselines" | "view_operator" | "view_seo" | "capture_seo";
+export type QualityRole = "management_viewer" | "reporter" | "validator" | "finding_owner" | "security_reviewer" | "administrator";
+export type QualityCapability = "submit_report" | "review_reports" | "manage_findings" | "manage_baselines" | "view_operator" | "view_seo" | "capture_seo" | "review_security";
 export type QualityUser = AuthenticatedQualityUser & { role: QualityRole; localPilot: boolean };
 
 const roleCapabilities: Record<QualityRole, ReadonlySet<QualityCapability>> = {
@@ -21,7 +21,8 @@ const roleCapabilities: Record<QualityRole, ReadonlySet<QualityCapability>> = {
   reporter: new Set(["submit_report"]),
   validator: new Set(["submit_report", "review_reports", "view_operator", "view_seo"]),
   finding_owner: new Set(["submit_report", "manage_findings", "view_operator", "view_seo"]),
-  administrator: new Set(["submit_report", "review_reports", "manage_findings", "manage_baselines", "view_operator", "view_seo", "capture_seo"]),
+  security_reviewer: new Set(["review_security"]),
+  administrator: new Set(["submit_report", "review_reports", "manage_findings", "manage_baselines", "view_operator", "view_seo", "capture_seo", "review_security"]),
 };
 
 const INTERNAL_ID_HEADER = "x-sitescout-authenticated-user-id";
@@ -72,7 +73,7 @@ export async function requireQualityRole(...roles: QualityRole[]): Promise<Quali
 }
 
 export async function requireQualityCapability(capability: QualityCapability): Promise<QualityUser> {
-  const user = await requireQualityRole("management_viewer", "reporter", "validator", "finding_owner", "administrator");
+  const user = await requireQualityRole("management_viewer", "reporter", "validator", "finding_owner", "security_reviewer", "administrator");
   if (!canQuality(user.role, capability)) throw new QualityAuthError("Your SiteScout role does not permit this action.", 403);
   return user;
 }
@@ -87,6 +88,7 @@ export function canQuality(role: QualityRole, capability: QualityCapability) {
 
 export function qualityRoleLabel(role: QualityRole) {
   if (role === "management_viewer") return "Management viewer";
+  if (role === "security_reviewer") return "Security reviewer";
   return role === "finding_owner" ? "Finding owner" : `${role[0].toUpperCase()}${role.slice(1)}`;
 }
 
@@ -140,11 +142,13 @@ function configuredRole(email: string): QualityRole | null {
   const administrators = configuredEmails(env.QUALITY_ADMIN_EMAILS ?? process.env.QUALITY_ADMIN_EMAILS);
   const validators = configuredEmails(env.QUALITY_VALIDATOR_EMAILS ?? process.env.QUALITY_VALIDATOR_EMAILS);
   const findingOwners = configuredEmails(env.QUALITY_FINDING_OWNER_EMAILS ?? process.env.QUALITY_FINDING_OWNER_EMAILS);
+  const securityReviewers = configuredEmails(env.QUALITY_SECURITY_REVIEWER_EMAILS ?? process.env.QUALITY_SECURITY_REVIEWER_EMAILS);
   const reporters = configuredEmails(env.QUALITY_REPORTER_EMAILS ?? process.env.QUALITY_REPORTER_EMAILS);
   const managementViewers = configuredEmails(env.QUALITY_MANAGEMENT_VIEWER_EMAILS ?? process.env.QUALITY_MANAGEMENT_VIEWER_EMAILS);
   if (legacyOwner.has(normalized) || administrators.has(normalized)) return "administrator";
   if (validators.has(normalized)) return "validator";
   if (findingOwners.has(normalized)) return "finding_owner";
+  if (securityReviewers.has(normalized)) return "security_reviewer";
   if (reporters.has(normalized)) return "reporter";
   if (managementViewers.has(normalized)) return "management_viewer";
   return null;

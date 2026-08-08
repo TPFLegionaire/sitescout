@@ -24,8 +24,11 @@ This is the supported production architecture:
    - `QUALITY_ADMIN_EMAILS`
    - `QUALITY_VALIDATOR_EMAILS`
    - `QUALITY_FINDING_OWNER_EMAILS`
+   - `QUALITY_SECURITY_REVIEWER_EMAILS`
    - `QUALITY_REPORTER_EMAILS`
-10. Keep `QUALITY_PUBLIC_DEMO=false` and AI assistance disabled for the first release.
+10. Keep `QUALITY_SECURITY_IMPORT_TARGET_IDS` empty unless an exact disposable target has been approved for externally run Strix evaluation. Set `QUALITY_SECURITY_ARTIFACT_RETENTION_DAYS` and retain the daily cron trigger.
+11. Add exact non-administrator site assignments in `quality_user_roles`; an allowlist entry alone does not grant site access.
+12. Keep `QUALITY_PUBLIC_DEMO=false` and AI assistance disabled for the first release.
 
 Do not manually create the application-hostname DNS record when using a Worker custom domain; deployment manages the record and certificate.
 
@@ -49,7 +52,9 @@ Apply the SQL migrations from `drizzle/` to the production D1 database using the
 6. Confirm Reporters cannot access operator routes and can see only their own evidence.
 7. Confirm R2 objects are not public and evidence responses are `private, no-store`.
 8. Submit, request information on, reply to, assign, fix, re-test and close one disposable report.
-9. Verify application logs contain no screenshots, credentials or Access tokens.
+9. Import one synthetic Strix report for an approved disposable target; prove a Security Reviewer without a matching site assignment sees no targets.
+10. Prove high/critical review needs a second person, raw-artifact reads are logged, a legal hold blocks deletion and the retention endpoint removes only expired non-held objects.
+11. Verify application logs contain no screenshots, raw exploit material, credentials, private storage keys or Access tokens.
 
 ## Rollback and recovery
 

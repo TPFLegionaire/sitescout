@@ -25,7 +25,10 @@ try {
   $env:QUALITY_REPORTER_EMAILS = "reporter1@pilot.invalid,reporter2@pilot.invalid,reporter3@pilot.invalid,reporter4@pilot.invalid,reporter5@pilot.invalid"
   $env:QUALITY_VALIDATOR_EMAILS = "validator1@pilot.invalid,validator2@pilot.invalid"
   $env:QUALITY_FINDING_OWNER_EMAILS = "owner1@pilot.invalid,owner2@pilot.invalid"
-  $env:QUALITY_ADMIN_EMAILS = "admin1@pilot.invalid"
+  $env:QUALITY_ADMIN_EMAILS = "admin1@pilot.invalid,admin2@pilot.invalid"
+  $env:QUALITY_SECURITY_REVIEWER_EMAILS = "security1@pilot.invalid,security2@pilot.invalid"
+  $env:QUALITY_SECURITY_IMPORT_TARGET_IDS = "sample-shop-staging"
+  $env:QUALITY_SECURITY_ARTIFACT_RETENTION_DAYS = "30"
   $projectPath = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot "..")).Path
   $childCommand = "npm.cmd run dev -- --port $Port 1>`"$stdoutPath`" 2>`"$stderrPath`""
   $server = Start-Process -FilePath $env:ComSpec -ArgumentList "/d", "/s", "/c", $childCommand -WorkingDirectory $projectPath -WindowStyle Hidden -PassThru
@@ -50,6 +53,8 @@ try {
   if ($LASTEXITCODE -ne 0) { throw "Disposable live API test failed with exit code $LASTEXITCODE." }
   & node (Join-Path $projectPath "tests\synthetic-pilot.mjs")
   if ($LASTEXITCODE -ne 0) { throw "Disposable ten-user pilot failed with exit code $LASTEXITCODE." }
+  & node (Join-Path $projectPath "tests\security-import-live.mjs")
+  if ($LASTEXITCODE -ne 0) { throw "Disposable Strix import workflow failed with exit code $LASTEXITCODE." }
 } finally {
   for ($attempt = 0; $attempt -lt 20; $attempt++) {
     $ownedProcesses = @(Get-Process -Name node, cmd, workerd -ErrorAction SilentlyContinue | Where-Object { $preexistingProcessIds -notcontains $_.Id })
