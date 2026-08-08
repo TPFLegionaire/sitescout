@@ -13,15 +13,15 @@ export type AuthenticatedQualityUser = {
 };
 
 export type QualityRole = "management_viewer" | "reporter" | "validator" | "finding_owner" | "administrator";
-export type QualityCapability = "submit_report" | "review_reports" | "manage_findings" | "manage_baselines" | "view_operator";
+export type QualityCapability = "submit_report" | "review_reports" | "manage_findings" | "manage_baselines" | "view_operator" | "view_seo" | "capture_seo";
 export type QualityUser = AuthenticatedQualityUser & { role: QualityRole; localPilot: boolean };
 
 const roleCapabilities: Record<QualityRole, ReadonlySet<QualityCapability>> = {
-  management_viewer: new Set(["view_operator"]),
+  management_viewer: new Set(["view_operator", "view_seo"]),
   reporter: new Set(["submit_report"]),
-  validator: new Set(["submit_report", "review_reports", "view_operator"]),
-  finding_owner: new Set(["submit_report", "manage_findings", "view_operator"]),
-  administrator: new Set(["submit_report", "review_reports", "manage_findings", "manage_baselines", "view_operator"]),
+  validator: new Set(["submit_report", "review_reports", "view_operator", "view_seo"]),
+  finding_owner: new Set(["submit_report", "manage_findings", "view_operator", "view_seo"]),
+  administrator: new Set(["submit_report", "review_reports", "manage_findings", "manage_baselines", "view_operator", "view_seo", "capture_seo"]),
 };
 
 const INTERNAL_ID_HEADER = "x-sitescout-authenticated-user-id";

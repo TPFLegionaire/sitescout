@@ -215,6 +215,7 @@ export function QualityPlatform({ initialData, user }: { initialData: DashboardD
           <div><p className="eyebrow">WEBSITE RELEASE ASSURANCE</p><h1>{nav.find((item) => item.id === view)?.label}</h1></div>
           <div className="top-actions">
             {user.role !== "management_viewer" ? <Link className="target-link report-link" href="/report"><span>Report issue</span><i aria-hidden="true">+</i></Link> : null}
+            <Link className="target-link" href="/seo"><span>SEO snapshots</span><i aria-hidden="true">↗</i></Link>
             <label className="site-switch"><span className="sr-only">Website</span><select aria-label="Website" value={selectedSiteId} onChange={(event) => selectSite(event.target.value)}>{data.sites.map((site) => <option key={site.id} value={site.id}>{site.name}</option>)}</select></label>
             <div className="environment-switch" aria-label="Environment">
               {(["production", "staging"] as Environment[]).map((name) => <button key={name} className={environment === name ? "active" : ""} onClick={() => setEnvironment(name)}><span />{name}</button>)}

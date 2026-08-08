@@ -1,7 +1,7 @@
 import { getD1 } from "./index";
 import seedPayload from "../data/demo-seed.json";
 
-const SCHEMA_VERSION = "4";
+const SCHEMA_VERSION = "6";
 const SEED_VERSION = "sitescout-demo-v1";
 const SEEDED_AT = "2026-08-01T08:00:00.000Z";
 
@@ -26,6 +26,8 @@ const baseSchemaStatements = [
   `CREATE TABLE IF NOT EXISTS pilot_events (id TEXT PRIMARY KEY, event_type TEXT NOT NULL, observation_id TEXT, actor_email TEXT NOT NULL, duration_ms INTEGER, detail_json TEXT NOT NULL, created_at TEXT NOT NULL)`,
   `CREATE TABLE IF NOT EXISTS notifications (id TEXT PRIMARY KEY, recipient_email TEXT NOT NULL, event_type TEXT NOT NULL, observation_id TEXT, finding_id TEXT, title TEXT NOT NULL, body TEXT NOT NULL, read_at TEXT, created_at TEXT NOT NULL)`,
   `CREATE TABLE IF NOT EXISTS activity_log (id INTEGER PRIMARY KEY AUTOINCREMENT, event_type TEXT NOT NULL, entity_type TEXT NOT NULL, entity_id TEXT NOT NULL, actor TEXT NOT NULL, detail_json TEXT NOT NULL, created_at TEXT NOT NULL)`,
+  `CREATE TABLE IF NOT EXISTS seo_snapshot_runs (id TEXT PRIMARY KEY, organization_id TEXT NOT NULL, site_id TEXT NOT NULL, target_id TEXT NOT NULL, source TEXT NOT NULL DEFAULT 'dataforseo', operation TEXT NOT NULL, status TEXT NOT NULL, dimensions_json TEXT NOT NULL, idempotency_key TEXT NOT NULL, cost_estimate REAL NOT NULL DEFAULT 0, cost_actual REAL, cost_reserved REAL NOT NULL DEFAULT 0, attempt_count INTEGER NOT NULL DEFAULT 0, lease_expires_at TEXT, provider_dispatched_at TEXT, failure_stage TEXT, provider_reference TEXT, coverage_json TEXT NOT NULL, limitations_json TEXT NOT NULL, artifact_storage_key TEXT, artifact_sha256 TEXT, requested_by TEXT NOT NULL, requested_at TEXT NOT NULL, completed_at TEXT)`,
+  `CREATE TABLE IF NOT EXISTS seo_snapshot_metrics (id TEXT PRIMARY KEY, snapshot_run_id TEXT NOT NULL, metric_key TEXT NOT NULL, dimension_json TEXT NOT NULL, value_json TEXT NOT NULL, captured_at TEXT NOT NULL)`,
 ];
 
 const indexStatements = [
@@ -62,6 +64,10 @@ const indexStatements = [
   `CREATE INDEX IF NOT EXISTS idx_notifications_recipient_read_created ON notifications(recipient_email, read_at, created_at)`,
   `CREATE INDEX IF NOT EXISTS idx_notifications_observation ON notifications(observation_id)`,
   `CREATE INDEX IF NOT EXISTS idx_activity_created ON activity_log(created_at)`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS idx_seo_snapshot_runs_idempotency ON seo_snapshot_runs(idempotency_key)`,
+  `CREATE INDEX IF NOT EXISTS idx_seo_snapshot_runs_site_requested ON seo_snapshot_runs(site_id, requested_at)`,
+  `CREATE INDEX IF NOT EXISTS idx_seo_snapshot_runs_status ON seo_snapshot_runs(status, lease_expires_at, requested_at)`,
+  `CREATE INDEX IF NOT EXISTS idx_seo_snapshot_metrics_run ON seo_snapshot_metrics(snapshot_run_id)`,
 ];
 
 async function runBatches(statements: D1PreparedStatement[], size = 40) {
@@ -80,9 +86,18 @@ async function ensureColumn(table: string, column: string, statement: string) {
 async function migrateLegacyShape() {
   const d1 = getD1();
   await d1.prepare("DROP INDEX IF EXISTS idx_targets_environment").run();
+  await d1.prepare("DROP INDEX IF EXISTS idx_seo_snapshot_runs_status").run();
   await ensureColumn("targets", "site_id", "ALTER TABLE targets ADD COLUMN site_id TEXT");
   await ensureColumn("findings", "site_id", "ALTER TABLE findings ADD COLUMN site_id TEXT");
   await ensureColumn("findings", "display_key", "ALTER TABLE findings ADD COLUMN display_key TEXT");
+  await ensureColumn("seo_snapshot_runs", "cost_reserved", "ALTER TABLE seo_snapshot_runs ADD COLUMN cost_reserved REAL NOT NULL DEFAULT 0");
+  await ensureColumn("seo_snapshot_runs", "attempt_count", "ALTER TABLE seo_snapshot_runs ADD COLUMN attempt_count INTEGER NOT NULL DEFAULT 0");
+  await ensureColumn("seo_snapshot_runs", "lease_expires_at", "ALTER TABLE seo_snapshot_runs ADD COLUMN lease_expires_at TEXT");
+  await ensureColumn("seo_snapshot_runs", "provider_dispatched_at", "ALTER TABLE seo_snapshot_runs ADD COLUMN provider_dispatched_at TEXT");
+  await ensureColumn("seo_snapshot_runs", "failure_stage", "ALTER TABLE seo_snapshot_runs ADD COLUMN failure_stage TEXT");
+  await ensureColumn("seo_snapshot_runs", "provider_reference", "ALTER TABLE seo_snapshot_runs ADD COLUMN provider_reference TEXT");
+  await d1.prepare("UPDATE seo_snapshot_runs SET status = 'failed_provider', failure_stage = 'provider' WHERE status = 'failed'").run();
+  await d1.prepare("UPDATE seo_snapshot_runs SET attempt_count = 1 WHERE attempt_count = 0 AND status <> 'abandoned'").run();
 
   const legacyTarget = await d1.prepare("SELECT id FROM targets WHERE site_id IS NULL OR site_id = '' LIMIT 1").first();
   const legacyFinding = await d1.prepare("SELECT id FROM findings WHERE site_id IS NULL OR site_id = '' OR display_key IS NULL OR display_key = '' LIMIT 1").first();

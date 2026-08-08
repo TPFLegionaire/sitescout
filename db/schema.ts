@@ -1,4 +1,4 @@
-import { index, integer, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
+import { index, integer, real, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 
 export const schemaMeta = sqliteTable("schema_meta", {
   key: text("key").primaryKey(),
@@ -342,4 +342,52 @@ export const activityLog = sqliteTable(
     createdAt: text("created_at").notNull(),
   },
   (table) => [index("idx_activity_created").on(table.createdAt)],
+);
+
+export const seoSnapshotRuns = sqliteTable(
+  "seo_snapshot_runs",
+  {
+    id: text("id").primaryKey(),
+    organizationId: text("organization_id").notNull(),
+    siteId: text("site_id").notNull(),
+    targetId: text("target_id").notNull(),
+    source: text("source").notNull().default("dataforseo"),
+    operation: text("operation").notNull(),
+    status: text("status").notNull(),
+    dimensionsJson: text("dimensions_json").notNull(),
+    idempotencyKey: text("idempotency_key").notNull(),
+    costEstimate: real("cost_estimate").notNull().default(0),
+    costActual: real("cost_actual"),
+    costReserved: real("cost_reserved").notNull().default(0),
+    attemptCount: integer("attempt_count").notNull().default(0),
+    leaseExpiresAt: text("lease_expires_at"),
+    providerDispatchedAt: text("provider_dispatched_at"),
+    failureStage: text("failure_stage"),
+    providerReference: text("provider_reference"),
+    coverageJson: text("coverage_json").notNull(),
+    limitationsJson: text("limitations_json").notNull(),
+    artifactStorageKey: text("artifact_storage_key"),
+    artifactSha256: text("artifact_sha256"),
+    requestedBy: text("requested_by").notNull(),
+    requestedAt: text("requested_at").notNull(),
+    completedAt: text("completed_at"),
+  },
+  (table) => [
+    uniqueIndex("idx_seo_snapshot_runs_idempotency").on(table.idempotencyKey),
+    index("idx_seo_snapshot_runs_site_requested").on(table.siteId, table.requestedAt),
+    index("idx_seo_snapshot_runs_status").on(table.status, table.leaseExpiresAt, table.requestedAt),
+  ],
+);
+
+export const seoSnapshotMetrics = sqliteTable(
+  "seo_snapshot_metrics",
+  {
+    id: text("id").primaryKey(),
+    snapshotRunId: text("snapshot_run_id").notNull(),
+    metricKey: text("metric_key").notNull(),
+    dimensionJson: text("dimension_json").notNull(),
+    valueJson: text("value_json").notNull(),
+    capturedAt: text("captured_at").notNull(),
+  },
+  (table) => [index("idx_seo_snapshot_metrics_run").on(table.snapshotRunId)],
 );
