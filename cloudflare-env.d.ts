@@ -15,5 +15,11 @@ declare namespace Cloudflare {
     QUALITY_AI_ASSIST_ENABLED?: string;
     QUALITY_AI_MODEL?: string;
     OPENAI_API_KEY?: string;
+    QUALITY_SEO_ENABLED?: string;
+    QUALITY_SEO_PER_OPERATION_CAP_USD?: string;
+    QUALITY_SEO_MONTHLY_CAP_USD?: string;
+    DATAFORSEO_LOGIN?: string;
+    DATAFORSEO_PASSWORD?: string;
+    DATAFORSEO_BASE_URL?: string;
   }
 }
