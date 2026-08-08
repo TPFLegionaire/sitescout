@@ -16,17 +16,10 @@ import {
   resolveTargetDomain,
 } from "@/lib/platform/seo/dataforseo-core.mjs";
 import { fetchDataForSeoSnapshot, monthlyCapUsd, perOperationCapUsd, seoConfigured } from "@/lib/platform/seo/dataforseo";
+import { loadSeoSnapshotsForSite, monthlySpend } from "@/lib/platform/seo/seo-data";
 
 function sha256Hex(bytes: Uint8Array) {
   return createHash("sha256").update(bytes).digest("hex");
-}
-
-async function monthlySpend(month: string) {
-  const row = await getD1()
-    .prepare("SELECT COALESCE(SUM(cost_actual), 0) AS spent FROM seo_snapshot_runs WHERE status = 'completed' AND substr(requested_at, 1, 7) = ?")
-    .bind(month)
-    .first<{ spent: number }>();
-  return Number(row?.spent ?? 0);
 }
 
 // Administrator-only. A registered target ID and a fixed operation enum cross the
@@ -142,38 +135,9 @@ export async function GET(request: Request) {
     await requireQualityRole("management_viewer", "validator", "finding_owner", "administrator");
     await ensureDatabase();
     const siteId = requiredText(new URL(request.url).searchParams.get("siteId"), "Site", 100);
-    const d1 = getD1();
-
-    const runs = await d1
-      .prepare(
-        `SELECT id, site_id AS siteId, target_id AS targetId, source, operation, status, dimensions_json AS dimensionsJson, cost_estimate AS costEstimate, cost_actual AS costActual, coverage_json AS coverageJson, limitations_json AS limitationsJson, artifact_sha256 AS artifactSha256, requested_by AS requestedBy, requested_at AS requestedAt, completed_at AS completedAt
-         FROM seo_snapshot_runs WHERE site_id = ? ORDER BY requested_at DESC LIMIT 50`,
-      )
-      .bind(siteId)
-      .all<{ id: string; siteId: string; targetId: string; source: string; operation: string; status: string; dimensionsJson: string; costEstimate: number; costActual: number | null; coverageJson: string; limitationsJson: string; artifactSha256: string | null; requestedBy: string; requestedAt: string; completedAt: string | null }>();
-
-    const ids = runs.results.map((row) => row.id);
-    let metrics: Array<{ snapshotRunId: string; metricKey: string; dimensionJson: string; valueJson: string; capturedAt: string }> = [];
-    if (ids.length) {
-      const placeholders = ids.map(() => "?").join(", ");
-      const metricRows = await d1
-        .prepare(`SELECT snapshot_run_id AS snapshotRunId, metric_key AS metricKey, dimension_json AS dimensionJson, value_json AS valueJson, captured_at AS capturedAt FROM seo_snapshot_metrics WHERE snapshot_run_id IN (${placeholders}) ORDER BY captured_at DESC`)
-        .bind(...ids)
-        .all<{ snapshotRunId: string; metricKey: string; dimensionJson: string; valueJson: string; capturedAt: string }>();
-      metrics = metricRows.results;
-    }
-
-    const month = monthPrefix(new Date().toISOString());
+    const data = await loadSeoSnapshotsForSite(siteId);
     return Response.json(
-      {
-        ok: true,
-        data: {
-          snapshots: runs.results,
-          metrics,
-          budget: { month, monthlySpentUsd: await monthlySpend(month), monthlyCapUsd: monthlyCapUsd(), perOperationCapUsd: perOperationCapUsd() },
-          note: "External SEO intelligence. No finding or baseline is created or changed by these snapshots.",
-        },
-      },
+      { ok: true, data: { ...data, note: "External SEO intelligence. No finding or baseline is created or changed by these snapshots." } },
       { headers: { "cache-control": "no-store" } },
     );
   } catch (error) {
