@@ -25,7 +25,7 @@ const METRIC_LABELS: Record<string, string> = {
   backlink_rank: "Backlink rank",
 };
 
-const STATUS_TONE: Record<string, string> = { completed: "#1f8a5b", failed: "#b4462f", running: "#9a6a12" };
+const STATUS_TONE: Record<string, string> = { completed: "#1f8a5b", failed_provider: "#b4462f", failed_persistence: "#b4462f", abandoned: "#b4462f", running: "#9a6a12" };
 
 export function SeoSnapshots({ user, sites, selectedSiteId, initial }: { user: QualityUser; sites: SeoSiteOption[]; selectedSiteId: string; initial: SeoSnapshotView }) {
   const [siteId, setSiteId] = useState(selectedSiteId);
@@ -62,7 +62,6 @@ export function SeoSnapshots({ user, sites, selectedSiteId, initial }: { user: Q
           siteId,
           targetId: form.get("targetId"),
           operation: form.get("operation"),
-          dimensions: { country: form.get("country"), language: form.get("language"), device: form.get("device") },
         }),
       });
       const payload = (await response.json()) as { ok?: boolean; error?: string; idempotent?: boolean; hasUsableData?: boolean };
@@ -122,11 +121,11 @@ export function SeoSnapshots({ user, sites, selectedSiteId, initial }: { user: Q
                       {OPERATIONS.map((operation) => <option key={operation.id} value={operation.id}>{operation.label}</option>)}
                     </select>
                   </label>
-                  <label style={fieldStyle}><span style={labelStyle}>Country</span><input name="country" defaultValue="gb" maxLength={2} required pattern="[A-Za-z]{2}" /></label>
-                  <label style={fieldStyle}><span style={labelStyle}>Language</span><input name="language" defaultValue="en" maxLength={2} required pattern="[A-Za-z]{2}" /></label>
-                  <label style={fieldStyle}><span style={labelStyle}>Device</span>
-                    <select name="device" defaultValue="desktop"><option value="desktop">Desktop</option><option value="mobile">Mobile</option></select>
-                  </label>
+                  <div style={fieldStyle}><span style={labelStyle}>Fixed provider profile</span>
+                    <div style={{ padding: "10px 12px", border: "1px solid var(--line)", borderRadius: 8, fontSize: 12 }}>
+                      {view.profile.country.toUpperCase()} · {view.profile.language.toUpperCase()} · all devices · location {view.profile.locationCode}
+                    </div>
+                  </div>
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                   <button className="primary small" disabled={busy} type="submit">{busy ? "Requesting…" : "Capture snapshot"}</button>
@@ -165,7 +164,7 @@ function SiteAndBudget({ sites, siteId, onChangeSite, budget }: { sites: SeoSite
         </select>
       </label>
       <div style={{ fontSize: 12, color: "var(--muted)" }}>
-        <span style={labelStyle}>Spend this month</span>
+        <span style={labelStyle}>Provider cost and active reservations this month</span>
         <div style={{ fontVariantNumeric: "tabular-nums", color: "var(--ink, inherit)", fontSize: 14, marginTop: 4 }}>
           {money(budget.monthlySpentUsd)} <span style={{ color: "var(--muted)" }}>/ {money(budget.monthlyCapUsd)} cap · {money(budget.perOperationCapUsd)} per request</span>
         </div>
@@ -188,7 +187,7 @@ function SnapshotCard({ run, metrics }: { run: SeoSnapshotRunRow; metrics: SeoMe
         <small style={{ color: "var(--muted)", fontSize: 11 }}>{formatDate(run.requestedAt)}</small>
       </div>
       <div style={{ marginTop: 6, fontSize: 12, color: "var(--muted)" }}>
-        {dimensions.country.toUpperCase()} · {dimensions.language.toUpperCase()} · {dimensions.device} · source {run.source} · {money(cost)}
+        {dimensions.country.toUpperCase()} · {dimensions.language.toUpperCase()} · {dimensions.device} · source {run.source} · {money(cost)} · attempt {run.attemptCount}
       </div>
 
       {metrics.length ? (
