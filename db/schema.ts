@@ -385,3 +385,58 @@ export const seoSnapshotMetrics = sqliteTable(
   },
   (table) => [index("idx_seo_snapshot_metrics_run").on(table.snapshotRunId)],
 );
+
+export const securityImportRuns = sqliteTable(
+  "security_import_runs",
+  {
+    id: text("id").primaryKey(),
+    source: text("source").notNull().default("strix"),
+    sourceVersion: text("source_version"),
+    targetLabel: text("target_label").notNull(),
+    scanMode: text("scan_mode"),
+    imageDigest: text("image_digest"),
+    model: text("model"),
+    status: text("status").notNull(),
+    coverageJson: text("coverage_json").notNull(),
+    limitationsJson: text("limitations_json").notNull(),
+    artifactStorageKey: text("artifact_storage_key"),
+    artifactSha256: text("artifact_sha256").notNull(),
+    candidateCount: integer("candidate_count").notNull().default(0),
+    importedBy: text("imported_by").notNull(),
+    createdAt: text("created_at").notNull(),
+  },
+  (table) => [
+    uniqueIndex("idx_security_import_runs_sha").on(table.artifactSha256),
+    index("idx_security_import_runs_created").on(table.createdAt),
+  ],
+);
+
+export const securityCandidates = sqliteTable(
+  "security_candidates",
+  {
+    id: text("id").primaryKey(),
+    importRunId: text("import_run_id").notNull(),
+    externalId: text("external_id").notNull().default(""),
+    title: text("title").notNull(),
+    severity: text("severity").notNull(),
+    cwe: text("cwe").notNull().default(""),
+    cvssVector: text("cvss_vector").notNull().default(""),
+    endpoint: text("endpoint").notNull().default(""),
+    method: text("method").notNull().default(""),
+    summary: text("summary").notNull().default(""),
+    remediation: text("remediation").notNull().default(""),
+    fingerprint: text("fingerprint").notNull(),
+    reviewStatus: text("review_status").notNull().default("pending"),
+    firstReviewer: text("first_reviewer"),
+    reviewedBy: text("reviewed_by"),
+    secondCheckBy: text("second_check_by"),
+    reviewNote: text("review_note"),
+    reviewedAt: text("reviewed_at"),
+    createdAt: text("created_at").notNull(),
+  },
+  (table) => [
+    index("idx_security_candidates_run").on(table.importRunId),
+    index("idx_security_candidates_fingerprint").on(table.fingerprint),
+    index("idx_security_candidates_review").on(table.reviewStatus),
+  ],
+);

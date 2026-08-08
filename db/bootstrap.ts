@@ -1,7 +1,7 @@
 import { getD1 } from "./index";
 import seedPayload from "../data/demo-seed.json";
 
-const SCHEMA_VERSION = "5";
+const SCHEMA_VERSION = "6";
 const SEED_VERSION = "sitescout-demo-v1";
 const SEEDED_AT = "2026-08-01T08:00:00.000Z";
 
@@ -28,6 +28,8 @@ const baseSchemaStatements = [
   `CREATE TABLE IF NOT EXISTS activity_log (id INTEGER PRIMARY KEY AUTOINCREMENT, event_type TEXT NOT NULL, entity_type TEXT NOT NULL, entity_id TEXT NOT NULL, actor TEXT NOT NULL, detail_json TEXT NOT NULL, created_at TEXT NOT NULL)`,
   `CREATE TABLE IF NOT EXISTS seo_snapshot_runs (id TEXT PRIMARY KEY, organization_id TEXT NOT NULL, site_id TEXT NOT NULL, target_id TEXT NOT NULL, source TEXT NOT NULL DEFAULT 'dataforseo', operation TEXT NOT NULL, status TEXT NOT NULL, dimensions_json TEXT NOT NULL, idempotency_key TEXT NOT NULL, cost_estimate REAL NOT NULL DEFAULT 0, cost_actual REAL, coverage_json TEXT NOT NULL, limitations_json TEXT NOT NULL, artifact_storage_key TEXT, artifact_sha256 TEXT, requested_by TEXT NOT NULL, requested_at TEXT NOT NULL, completed_at TEXT)`,
   `CREATE TABLE IF NOT EXISTS seo_snapshot_metrics (id TEXT PRIMARY KEY, snapshot_run_id TEXT NOT NULL, metric_key TEXT NOT NULL, dimension_json TEXT NOT NULL, value_json TEXT NOT NULL, captured_at TEXT NOT NULL)`,
+  `CREATE TABLE IF NOT EXISTS security_import_runs (id TEXT PRIMARY KEY, source TEXT NOT NULL DEFAULT 'strix', source_version TEXT, target_label TEXT NOT NULL, scan_mode TEXT, image_digest TEXT, model TEXT, status TEXT NOT NULL, coverage_json TEXT NOT NULL, limitations_json TEXT NOT NULL, artifact_storage_key TEXT, artifact_sha256 TEXT NOT NULL, candidate_count INTEGER NOT NULL DEFAULT 0, imported_by TEXT NOT NULL, created_at TEXT NOT NULL)`,
+  `CREATE TABLE IF NOT EXISTS security_candidates (id TEXT PRIMARY KEY, import_run_id TEXT NOT NULL, external_id TEXT NOT NULL DEFAULT '', title TEXT NOT NULL, severity TEXT NOT NULL, cwe TEXT NOT NULL DEFAULT '', cvss_vector TEXT NOT NULL DEFAULT '', endpoint TEXT NOT NULL DEFAULT '', method TEXT NOT NULL DEFAULT '', summary TEXT NOT NULL DEFAULT '', remediation TEXT NOT NULL DEFAULT '', fingerprint TEXT NOT NULL, review_status TEXT NOT NULL DEFAULT 'pending', first_reviewer TEXT, reviewed_by TEXT, second_check_by TEXT, review_note TEXT, reviewed_at TEXT, created_at TEXT NOT NULL)`,
 ];
 
 const indexStatements = [
@@ -68,6 +70,11 @@ const indexStatements = [
   `CREATE INDEX IF NOT EXISTS idx_seo_snapshot_runs_site_requested ON seo_snapshot_runs(site_id, requested_at)`,
   `CREATE INDEX IF NOT EXISTS idx_seo_snapshot_runs_status ON seo_snapshot_runs(status, requested_at)`,
   `CREATE INDEX IF NOT EXISTS idx_seo_snapshot_metrics_run ON seo_snapshot_metrics(snapshot_run_id)`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS idx_security_import_runs_sha ON security_import_runs(artifact_sha256)`,
+  `CREATE INDEX IF NOT EXISTS idx_security_import_runs_created ON security_import_runs(created_at)`,
+  `CREATE INDEX IF NOT EXISTS idx_security_candidates_run ON security_candidates(import_run_id)`,
+  `CREATE INDEX IF NOT EXISTS idx_security_candidates_fingerprint ON security_candidates(fingerprint)`,
+  `CREATE INDEX IF NOT EXISTS idx_security_candidates_review ON security_candidates(review_status)`,
 ];
 
 async function runBatches(statements: D1PreparedStatement[], size = 40) {

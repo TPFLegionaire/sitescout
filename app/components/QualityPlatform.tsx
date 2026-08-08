@@ -532,7 +532,7 @@ function formatPercent(value: number | null) { return value === null ? "—" : `
 function formatBytes(value: number) { if (value < 1024) return `${value} B`; if (value < 1024 * 1024) return `${Math.round(value / 1024)} KB`; return `${Math.round((value / (1024 * 1024)) * 10) / 10} MB`; }
 function initials(value: string) { return value.split(/\s+|@/).filter(Boolean).slice(0, 2).map((part) => part[0]?.toUpperCase()).join(""); }
 function assetUrl(asset: Asset) { return asset.publicUrl ?? `/api/evidence/${asset.id}`; }
-function roleLabel(role: QualityUser["role"]) { if (role === "management_viewer") return "Management Viewer"; return role === "finding_owner" ? "Finding Owner" : `${role[0].toUpperCase()}${role.slice(1)}`; }
+function roleLabel(role: QualityUser["role"]) { if (role === "management_viewer") return "Management Viewer"; if (role === "security_reviewer") return "Security Reviewer"; return role === "finding_owner" ? "Finding Owner" : `${role[0].toUpperCase()}${role.slice(1)}`; }
 function reviewSuccess(decision: ReviewDecision) {
   if (decision === "reject") return "The observation was not accepted and remains in the attributable audit trail.";
   if (decision === "accept_new") return "A new canonical finding was created and the reporter was notified.";

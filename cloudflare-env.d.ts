@@ -6,6 +6,7 @@ declare namespace Cloudflare {
     QUALITY_ADMIN_EMAILS?: string;
     QUALITY_VALIDATOR_EMAILS?: string;
     QUALITY_FINDING_OWNER_EMAILS?: string;
+    QUALITY_SECURITY_REVIEWER_EMAILS?: string;
     QUALITY_REPORTER_EMAILS?: string;
     QUALITY_MANAGEMENT_VIEWER_EMAILS?: string;
     QUALITY_AUTH_MODE?: string;
