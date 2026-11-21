@@ -14,6 +14,7 @@ This is the supported production architecture:
 1. Add the deployment domain to Cloudflare and wait until the zone is active.
 2. Create a Zero Trust organisation and select an approved identity method.
 3. Create a self-hosted Access application for the intended hostname.
+   - In its cookie settings, set SameSite to `Lax` or `Strict` and enable HttpOnly.
 4. Add exact pilot email addresses or an approved identity group. Do not use an unrestricted Everyone policy.
 5. Record the Zero Trust team domain and the application's Audience tag.
 6. Create a D1 database and a private R2 bucket.
@@ -55,6 +56,8 @@ Apply the SQL migrations from `drizzle/` to the production D1 database using the
 9. Import one synthetic Strix report for an approved disposable target; prove a Security Reviewer without a matching site assignment sees no targets.
 10. Prove high/critical review needs a second person, raw-artifact reads are logged, a legal hold blocks deletion and the retention endpoint removes only expired non-held objects.
 11. Verify application logs contain no screenshots, raw exploit material, credentials, private storage keys or Access tokens.
+12. Confirm the `CF_Authorization` cookie is `SameSite=Lax` or `Strict` and `HttpOnly`.
+13. Open every page with the browser console visible and confirm it reports no `Content-Security-Policy-Report-Only` violations. Record any violation before the policy is enforced.
 
 ## Rollback and recovery
 
