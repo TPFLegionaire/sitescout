@@ -2,6 +2,7 @@
 import { handleImageOptimization, DEFAULT_DEVICE_SIZES, DEFAULT_IMAGE_SIZES } from "vinext/server/image-optimization";
 import handler from "vinext/server/app-router-entry";
 import { isCloudflareAccessMode, verifyCloudflareAccessToken } from "../lib/platform/cloudflare-access-core.mjs";
+import { contentSecurityPolicy, isCrossOriginWrite } from "../lib/platform/request-guard-core.mjs";
 import { purgeExpiredSecurityArtifacts } from "../lib/platform/security/security-retention";
 
 interface Env {
@@ -35,9 +36,12 @@ const INTERNAL_ID_HEADER = "x-sitescout-authenticated-user-id";
 const INTERNAL_EMAIL_HEADER = "x-sitescout-authenticated-user-email";
 const INTERNAL_FULL_NAME_HEADER = "x-sitescout-authenticated-user-full-name";
 const INTERNAL_SOURCE_HEADER = "x-sitescout-authenticated-user-source";
+// Report-only until the policy has been observed clean on the deployment.
+const CSP_HEADER = "content-security-policy-report-only";
 
-function secureResponse(response: Response, url: URL) {
+function secureResponse(response: Response, url: URL, policy: string) {
   const headers = new Headers(response.headers);
+  headers.set(CSP_HEADER, policy);
   headers.set("x-content-type-options", "nosniff");
   headers.set("x-frame-options", "DENY");
   headers.set("referrer-policy", "no-referrer");
@@ -92,11 +96,22 @@ async function requestWithVerifiedIdentity(request: Request, env: Env): Promise<
 const worker = {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
-    const authenticatedRequest = await requestWithVerifiedIdentity(request, env);
-    if (authenticatedRequest instanceof Response) return secureResponse(authenticatedRequest, url);
+    // React and Vite evaluate strings on a development server only; any other build stays strict.
+    const policy = contentSecurityPolicy(crypto.randomUUID().replace(/-/g, ""), { allowEval: process.env.NODE_ENV === "development" });
+    if (isCrossOriginWrite({ method: request.method, url: request.url, origin: request.headers.get("origin"), secFetchSite: request.headers.get("sec-fetch-site") })) {
+      console.warn("SiteScout rejected a cross-origin write.", request.method, url.pathname);
+      return secureResponse(Response.json({ ok: false, error: "Cross-origin request rejected." }, { status: 403, headers: { "cache-control": "no-store" } }), url, policy);
+    }
+
+    // vinext stamps its inline scripts with the nonce it finds in these request headers.
+    const policyHeaders = new Headers(request.headers);
+    policyHeaders.delete("content-security-policy");
+    policyHeaders.set(CSP_HEADER, policy);
+    const authenticatedRequest = await requestWithVerifiedIdentity(new Request(request, { headers: policyHeaders }), env);
+    if (authenticatedRequest instanceof Response) return secureResponse(authenticatedRequest, url, policy);
 
     if (url.pathname === "/_vinext/image") {
-      if (!env.IMAGES) return secureResponse(new Response("Image transformation is unavailable.", { status: 404 }), url);
+      if (!env.IMAGES) return secureResponse(new Response("Image transformation is unavailable.", { status: 404 }), url, policy);
       const allowedWidths = [...DEFAULT_DEVICE_SIZES, ...DEFAULT_IMAGE_SIZES];
       const response = await handleImageOptimization(authenticatedRequest, {
         fetchAsset: (path) => env.ASSETS.fetch(new Request(new URL(path, authenticatedRequest.url))),
@@ -105,11 +120,11 @@ const worker = {
           return result.response();
         },
       }, allowedWidths);
-      return secureResponse(response, url);
+      return secureResponse(response, url, policy);
     }
 
     const response = await handler.fetch(authenticatedRequest, env, ctx);
-    return secureResponse(response, url);
+    return secureResponse(response, url, policy);
   },
   async scheduled(_controller: ScheduledController, env: Env, ctx: ExecutionContext): Promise<void> {
     ctx.waitUntil(

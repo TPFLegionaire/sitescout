@@ -12,6 +12,8 @@ Do not open a public issue containing an exploit, credential, private URL, scree
 
 - Production authentication must use `QUALITY_AUTH_MODE=cloudflare-access` with a verified Access issuer and audience.
 - Missing or invalid Access tokens fail closed before application routes run.
+- State-changing requests that do not come from the application's own origin are refused before authentication and before any route runs. Set the Access application cookie to `SameSite=Lax` or `Strict` as a second layer.
+- Every response carries a Content Security Policy with a per-request script nonce. It is report-only until a deployment has confirmed it clean.
 - D1 and R2 must remain private; evidence responses use private, no-store caching.
 - Staff screenshots must not contain credentials, tokens, customer data or unrelated personal information.
 - Automated audits are passive and bounded. Active scanning, exploitation, credential testing and denial-of-service testing are out of scope.
