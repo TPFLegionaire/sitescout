@@ -27,7 +27,8 @@ export async function POST(request: Request) {
     const suppliedActual = optionalText(form.get("actual"), 2000);
     const suppliedSuggestedFindingId = optionalText(form.get("suggestedFindingId"), 100);
     const triageCandidates = await getTriageCandidates(target.siteId);
-    const draft = await createTriageDraft({ url, description, title: suppliedTitle ?? undefined, expected: suppliedExpected ?? undefined, actual: suppliedActual ?? undefined }, triageCandidates);
+    const classification = reportClassification(form.get("securitySensitive"));
+    const draft = await createTriageDraft({ url, description, securitySensitive: classification === "restricted_security", title: suppliedTitle ?? undefined, expected: suppliedExpected ?? undefined, actual: suppliedActual ?? undefined }, triageCandidates);
     const title = suppliedTitle ?? draft.title;
     const expected = suppliedExpected ?? draft.expected;
     const actual = suppliedActual ?? draft.observed;
@@ -35,7 +36,6 @@ export async function POST(request: Request) {
     if (suggestedFindingId && !triageCandidates.some((candidate) => candidate.id === suggestedFindingId)) throw Object.assign(new Error("Suggested finding is not available in the active audit scope."), { status: 400 });
     const reportingVersion = optionalText(form.get("reportingVersion"), 50);
     const upload = await prepareEvidenceUpload(form.get("screenshot") as FormDataEntryValue, reportingVersion === "site-scout-v1");
-    const classification = reportClassification(form.get("securitySensitive"));
     const durationValue = Number(form.get("submissionDurationMs"));
     const submissionDurationMs = Number.isFinite(durationValue) && durationValue >= 0 && durationValue <= 3_600_000 ? Math.round(durationValue) : null;
     if (!env.EVIDENCE) throw Object.assign(new Error("Evidence storage is unavailable."), { status: 503 });

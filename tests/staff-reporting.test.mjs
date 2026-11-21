@@ -1,7 +1,17 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
-import { buildLocalTriage } from "../lib/platform/triage-core.mjs";
+import { buildLocalTriage, mayUseExternalAssist } from "../lib/platform/triage-core.mjs";
+
+test("a report flagged security-sensitive is never sent to the external assistant", () => {
+  assert.equal(mayUseExternalAssist({ securitySensitive: false }, true), true);
+  assert.equal(mayUseExternalAssist({ securitySensitive: true }, true), false);
+  // A caller that omits the flag, or passes something that is not a boolean, fails closed.
+  for (const input of [{}, { securitySensitive: undefined }, { securitySensitive: "false" }, { securitySensitive: 0 }, null, undefined]) {
+    assert.equal(mayUseExternalAssist(input, true), false);
+  }
+  assert.equal(mayUseExternalAssist({ securitySensitive: false }, false), false);
+});
 
 test("local assistance drafts a report and suggests only supplied active candidates", () => {
   const candidates = [

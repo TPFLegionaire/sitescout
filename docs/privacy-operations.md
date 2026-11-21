@@ -9,6 +9,9 @@ Status: staff-screenshot controls remain in dry-run mode. Strix raw-import artif
 - A report may contain at most 10 evidence assets and 25 MB of newly tracked evidence.
 - Reporters can see only their own evidence. Validators and Administrators can review restricted security reports. A Finding Owner sees restricted evidence only after the report is deliberately assigned to that exact owner.
 - A potential security report is excluded from normal Finding Owner visibility before assignment. Reporters are warned never to include credentials, tokens, customer data or other confidential material.
+- Only a Validator or Administrator assigns a restricted security report. A Finding Owner can take an unassigned standard report for themselves and cannot act on a report assigned to another person.
+- A canonical finding accepted from a restricted report carries a neutral title and placeholder text in the shared register; the detail stays on the report. The activity trail of a restricted report follows the same visibility as the report.
+- A report flagged as a potential security concern is drafted locally and is never sent to the AI service.
 - Legal-hold fields exist in the data model. No user interface can activate deletion while the policy mode is `dry-run`.
 
 ## Proposed retention and backup settings

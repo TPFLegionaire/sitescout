@@ -29,13 +29,15 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     const note = optionalText(body.note, 1000) ?? "";
     const d1 = getD1();
     const report = await d1.prepare(`
-      SELECT w.status, o.created_by AS createdBy, o.finding_id AS findingId, o.title
+      SELECT w.status, w.assigned_to AS assignedTo, COALESCE(p.classification, 'standard') AS classification,
+             o.created_by AS createdBy, o.finding_id AS findingId, o.title
       FROM staff_report_workflow w JOIN observations o ON o.id = w.observation_id
+      LEFT JOIN report_privacy p ON p.observation_id = o.id
       WHERE w.observation_id = ? AND o.source_channel = 'human'
-    `).bind(id).first<{ status: string; createdBy: string; findingId: string | null; title: string }>();
+    `).bind(id).first<{ status: string; assignedTo: string | null; classification: string; createdBy: string; findingId: string | null; title: string }>();
     if (!report) return Response.json({ ok: false, error: "Staff report not found" }, { status: 404 });
+    if (user.role === "finding_owner") assertFindingOwnerMayAct(user.email, status, assignedTo, report);
     if (!(transitions[report.status] ?? []).includes(status)) throw Object.assign(new Error(`Cannot move a report from ${report.status} to ${status}.`), { status: 409 });
-    if (user.role === "finding_owner" && !new Set(["assigned", "fixed"]).has(status)) throw Object.assign(new Error("Finding Owners can accept assignment and record a fix; a Validator must re-test and close it."), { status: 403 });
     if (user.role === "validator" && !new Set(["reproduced", "needs_info", "assigned", "retested", "closed"]).has(status)) throw Object.assign(new Error("Validators can reproduce, assign, re-test and close reports; a Finding Owner must record the fix."), { status: 403 });
     if (status === "assigned" && !report.findingId) throw Object.assign(new Error("Link or accept the report as a canonical finding before assignment."), { status: 409 });
     if (status === "assigned" && !assignedTo) throw Object.assign(new Error("Choose a Finding Owner before assignment."), { status: 400 });
@@ -51,6 +53,22 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     await d1.batch(statements);
     return Response.json({ ok: true, workflowStatus: status });
   } catch (error) { return apiError(error); }
+}
+
+/**
+ * A Finding Owner acts only on work that is theirs. These checks run before the
+ * transition check, so a refusal says nothing about the state of a report.
+ */
+function assertFindingOwnerMayAct(email: string, status: string, assignedTo: string | null, report: { assignedTo: string | null; classification: string }) {
+  const refuse = (message: string): never => { throw Object.assign(new Error(message), { status: 403 }); };
+  const isOwnEmail = (value: string | null) => (value ?? "").trim().toLowerCase() === email.trim().toLowerCase();
+  const own = isOwnEmail(report.assignedTo);
+  // An assignee written as a name is a team that any Finding Owner may serve; an email address is one person.
+  const heldByAnotherPerson = !own && Boolean(report.assignedTo?.includes("@"));
+  if (!new Set(["assigned", "fixed"]).has(status)) refuse("Finding Owners can accept assignment and record a fix; a Validator must re-test and close it.");
+  if (report.classification === "restricted_security" && !own) refuse("A Validator must assign a restricted security report before a Finding Owner can act on it.");
+  if (heldByAnotherPerson) refuse("This report is assigned to another Finding Owner; a Validator can reassign it.");
+  if (status === "assigned" && !isOwnEmail(assignedTo)) refuse("A Finding Owner can take a report for themselves; a Validator assigns it to anyone else.");
 }
 
 function statusNotification(status: string, title: string, findingId: string | null, assignedTo: string | null) {

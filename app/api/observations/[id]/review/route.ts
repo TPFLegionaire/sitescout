@@ -7,6 +7,14 @@ import auditScope from "@/config/audit-scope.json";
 
 const decisions = new Set(["confirm", "link", "support", "accept_new", "needs_info", "reject"]);
 const severities = new Set(["critical", "high", "medium", "low"]);
+// What the shared register shows for a finding that came from a restricted security report.
+const restrictedRegisterEntry = {
+  title: "Restricted security finding",
+  recommendation: "Follow the restricted security report. Its detail is limited to Validators, Administrators and the assigned Finding Owner.",
+  acceptanceCriteria: "Agreed on the restricted security report and confirmed by a Validator re-test.",
+  evidence: "Held on the restricted security report.",
+  source: "staff-report:restricted",
+};
 
 export async function POST(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
@@ -22,9 +30,10 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     const d1 = getD1();
     const observation = await d1.prepare(`
       SELECT o.id, o.target_id AS targetId, t.site_id AS siteId, o.suggested_finding_id AS suggestedFindingId, o.source_channel AS sourceChannel,
-             created_by AS createdBy, title, description, expected, actual, review_status AS reviewStatus
+             created_by AS createdBy, title, description, expected, actual, review_status AS reviewStatus,
+             COALESCE((SELECT p.classification FROM report_privacy p WHERE p.observation_id = o.id), 'standard') AS classification
       FROM observations o JOIN targets t ON t.id = o.target_id WHERE o.id = ?
-    `).bind(id).first<{ id: string; targetId: string; siteId: string; suggestedFindingId: string | null; sourceChannel: string; createdBy: string; title: string; description: string; expected: string; actual: string; reviewStatus: string }>();
+    `).bind(id).first<{ id: string; targetId: string; siteId: string; suggestedFindingId: string | null; sourceChannel: string; createdBy: string; title: string; description: string; expected: string; actual: string; reviewStatus: string; classification: string }>();
     if (!observation) return Response.json({ ok: false, error: "Observation not found" }, { status: 404 });
     if (!["pending", "needs_info"].includes(observation.reviewStatus)) throw Object.assign(new Error("This observation already has a final review decision."), { status: 409 });
     if (observation.sourceChannel !== "human" && new Set(["support", "accept_new", "needs_info"]).has(decision)) throw Object.assign(new Error("This decision is available only for staff reports."), { status: 400 });
@@ -37,11 +46,17 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
       const severity = optionalText(body.severity, 20) ?? "medium";
       if (!severities.has(severity)) throw Object.assign(new Error("Invalid severity."), { status: 400 });
       canonicalId = `SC-${now.slice(0, 10).replaceAll("-", "")}-${randomUUID().slice(0, 6).toUpperCase()}`;
-      const recommendation = optionalText(body.recommendation, 2000) ?? `Investigate the staff report and correct the behaviour described as: ${observation.actual}`;
-      const acceptanceCriteria = optionalText(body.acceptanceCriteria, 2000) ?? observation.expected;
+      // Every operator role and the Management Viewer read the register, so a restricted report contributes none of its text and not its id.
+      const register = observation.classification === "restricted_security" ? restrictedRegisterEntry : {
+        title: observation.title,
+        recommendation: optionalText(body.recommendation, 2000) ?? `Investigate the staff report and correct the behaviour described as: ${observation.actual}`,
+        acceptanceCriteria: optionalText(body.acceptanceCriteria, 2000) ?? observation.expected,
+        evidence: observation.description,
+        source: `staff-report:${id}`,
+      };
       statements.push(
-        d1.prepare("INSERT INTO findings (id, site_id, display_key, title, severity, category, recommendation, acceptance_criteria, owner, created_at) VALUES (?, ?, ?, ?, ?, 'Staff report', ?, ?, NULL, ?)").bind(canonicalId, observation.siteId, canonicalId, observation.title, severity, recommendation, acceptanceCriteria, now),
-        d1.prepare("INSERT INTO finding_states (id, finding_id, target_id, status, delta, last_run_id, current_evidence, updated_at) VALUES (?, ?, ?, 'open', 'New staff-validated finding', ?, ?, ?)").bind(`${canonicalId}:${observation.targetId}`, canonicalId, observation.targetId, `staff-report:${id}`, observation.description, now),
+        d1.prepare("INSERT INTO findings (id, site_id, display_key, title, severity, category, recommendation, acceptance_criteria, owner, created_at) VALUES (?, ?, ?, ?, ?, 'Staff report', ?, ?, NULL, ?)").bind(canonicalId, observation.siteId, canonicalId, register.title, severity, register.recommendation, register.acceptanceCriteria, now),
+        d1.prepare("INSERT INTO finding_states (id, finding_id, target_id, status, delta, last_run_id, current_evidence, updated_at) VALUES (?, ?, ?, 'open', 'New staff-validated finding', ?, ?, ?)").bind(`${canonicalId}:${observation.targetId}`, canonicalId, observation.targetId, register.source, register.evidence, now),
       );
     } else if (canonicalId) {
       if ((auditScope.excludedFindings as Array<{ id: string }>).some((finding) => finding.id === canonicalId)) throw Object.assign(new Error("That finding is governed through a separate workstream and cannot be linked in this audit queue."), { status: 409 });

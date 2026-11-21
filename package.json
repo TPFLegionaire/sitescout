@@ -10,7 +10,7 @@
     "dev": "vinext dev",
     "build": "vinext build",
     "start": "vinext start",
-    "test": "npm run test:unit && npm run build && node --test tests/rendered-html.test.mjs tests/worker-boundary.test.mjs",
+    "test": "npm run test:unit && npm run build && node --test tests/rendered-html.test.mjs tests/worker-boundary.test.mjs tests/restricted-report-boundary.test.mjs",
     "test:unit": "node --test tests/audit-engine.test.mjs tests/automated-groups.test.mjs tests/cloudflare-access.test.mjs tests/contracts.test.mjs tests/finding-guidance.test.mjs tests/pilot-metrics.test.mjs tests/request-guard.test.mjs tests/security-boundaries.test.mjs tests/security-config.test.mjs tests/security-metrics.test.mjs tests/security-retention.test.mjs tests/security-schema.test.mjs tests/seo-boundaries.test.mjs tests/seo-core.test.mjs tests/seo-reservation.test.mjs tests/site-access.test.mjs tests/staff-reporting.test.mjs tests/strix-core.test.mjs",
     "test:live": "node tests/live-api-smoke.mjs",
     "audit:smoke": "node scripts/run-audit.mjs --profile smoke",
