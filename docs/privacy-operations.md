@@ -5,7 +5,7 @@ Status: staff-screenshot controls remain in dry-run mode. Strix raw-import artif
 ## Current technical controls
 
 - Staff evidence remains private and is served with `private, no-store` caching.
-- Each screenshot is signature-checked, limited to 5 MB and, for editor submissions, re-encoded as a metadata-stripped PNG.
+- Each screenshot is signature-checked, limited to 5 MB and re-encoded as a metadata-stripped PNG. This applies to editor submissions and reply attachments alike.
 - A report may contain at most 10 evidence assets and 25 MB of newly tracked evidence.
 - Reporters can see only their own evidence. Validators and Administrators can review restricted security reports. A Finding Owner sees restricted evidence only after the report is deliberately assigned to that exact owner.
 - A potential security report is excluded from normal Finding Owner visibility before assignment. Reporters are warned never to include credentials, tokens, customer data or other confidential material.

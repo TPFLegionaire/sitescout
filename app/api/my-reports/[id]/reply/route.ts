@@ -40,7 +40,8 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
         WHERE e.observation_id = ?
       `).bind(id).first<{ assetCount: number; trackedBytes: number }>();
       if (Number(usage?.assetCount ?? 0) >= privacyPolicy.maxEvidenceAssetsPerReport) throw Object.assign(new Error("This report has reached its evidence attachment limit."), { status: 409 });
-      upload = await prepareEvidenceUpload(file);
+      if (file.type !== "image/png") throw Object.assign(new Error("Additional screenshots must be PNG files so SiteScout can strip embedded metadata."), { status: 400 });
+      upload = await prepareEvidenceUpload(file, true);
       if (Number(usage?.trackedBytes ?? 0) + upload.sizeBytes > privacyPolicy.maxEvidenceBytesPerReport) throw Object.assign(new Error("This report has reached its private evidence storage limit."), { status: 409 });
       if (!env.EVIDENCE) throw Object.assign(new Error("Evidence storage is unavailable."), { status: 503 });
       assetId = randomUUID();
