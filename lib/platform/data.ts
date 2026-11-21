@@ -90,7 +90,14 @@ export async function getDashboardData(user: QualityUser) {
     WHERE o.source_channel = 'human' ${visibilityClause}
   `);
   const bindVisible = (statement: D1PreparedStatement) => restrictForFindingOwner ? statement.bind(user.email) : statement;
-  const publicActivityClause = publicViewer ? "WHERE event_type IN ('demo_seeded', 'audit_imported')" : "";
+  // Every staff-report event is logged against its observation, so the trail of a restricted report follows the visibility of the report.
+  const activityClause = publicViewer
+    ? "WHERE a.event_type IN ('demo_seeded', 'audit_imported')"
+    : restrictForFindingOwner
+      ? `WHERE NOT (a.entity_type = 'observation' AND EXISTS (
+          SELECT 1 FROM report_privacy p LEFT JOIN staff_report_workflow w ON w.observation_id = p.observation_id
+          WHERE p.observation_id = a.entity_id AND p.classification = 'restricted_security' AND LOWER(COALESCE(w.assigned_to, '')) <> LOWER(?)))`
+      : "";
   const [organizations, sites, targets, states, findings, staffObservations, automatedObservations, evidence, reportMessages, observationCounts, findingLinks, queueCounts, baselines, runs, activity, metricReports, qualityUsers, privacyRows] = await Promise.all([
     d1.prepare(`SELECT id, slug, name, product_name AS productName, brand_label AS brandLabel FROM organizations ORDER BY created_at LIMIT 1`).all<DataRow>(),
     d1.prepare(`SELECT id, organization_id AS organizationId, slug, name FROM sites WHERE active = 1 ORDER BY name`).all<DataRow>(),
@@ -117,7 +124,7 @@ export async function getDashboardData(user: QualityUser) {
     bindVisible(queueStatement).all<DataRow>(),
     d1.prepare(`SELECT b.id, b.target_id AS targetId, b.run_id AS runId, b.version, b.reason, b.approved_by AS approvedBy, b.created_at AS createdAt, b.superseded_at AS supersededAt, r.completed_at AS runCompletedAt FROM baselines b JOIN audit_runs r ON r.id = b.run_id ORDER BY b.target_id, b.version DESC`).all<DataRow>(),
     d1.prepare(`SELECT id, target_id AS targetId, run_type AS runType, status, started_at AS startedAt, completed_at AS completedAt, ruleset_version AS rulesetVersion, profile_version AS profileVersion, browser, viewport, locale, page_limit AS pageLimit, pages_attempted AS pagesAttempted, pages_completed AS pagesCompleted, comparable, comparison_reason AS comparisonReason, coverage_json AS coverageJson, limitations_json AS limitationsJson, triggered_by AS triggeredBy FROM audit_runs ORDER BY completed_at DESC`).all<DataRow>(),
-    d1.prepare(`SELECT id, event_type AS eventType, entity_type AS entityType, entity_id AS entityId, actor, detail_json AS detailJson, created_at AS createdAt FROM activity_log ${publicActivityClause} ORDER BY created_at DESC LIMIT 20`).all<DataRow>(),
+    bindVisible(d1.prepare(`SELECT a.id, a.event_type AS eventType, a.entity_type AS entityType, a.entity_id AS entityId, a.actor, a.detail_json AS detailJson, a.created_at AS createdAt FROM activity_log a ${activityClause} ORDER BY a.created_at DESC LIMIT 20`)).all<DataRow>(),
     bindVisible(metricStatement).all<DataRow>(),
     d1.prepare("SELECT role FROM quality_users WHERE active = 1").all<DataRow>(),
     bindVisible(privacyStatement).all<DataRow>(),

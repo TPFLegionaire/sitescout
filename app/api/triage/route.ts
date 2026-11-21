@@ -3,6 +3,7 @@ import { ensureDatabase } from "@/db/bootstrap";
 import { getD1 } from "@/db";
 import { apiError, assertTargetUrl, optionalText, requiredText } from "@/lib/platform/validation";
 import { getTriageCandidates, recordQualityUser } from "@/lib/platform/staff-data";
+import { reportClassification } from "@/lib/platform/privacy";
 import { createTriageDraft } from "@/lib/platform/triage";
 
 export async function POST(request: Request) {
@@ -19,6 +20,7 @@ export async function POST(request: Request) {
     const draft = await createTriageDraft({
       url,
       description,
+      securitySensitive: reportClassification(body.securitySensitive) === "restricted_security",
       title: optionalText(body.title, 240) ?? undefined,
       expected: optionalText(body.expected, 2000) ?? undefined,
       actual: optionalText(body.actual, 2000) ?? undefined,

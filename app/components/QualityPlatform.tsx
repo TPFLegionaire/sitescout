@@ -160,7 +160,7 @@ export function QualityPlatform({ initialData, user }: { initialData: DashboardD
   }
 
   async function updateReportStatus(observation: Observation, status: string) {
-    const assignedTo = reportAssignments[observation.id]?.trim() || undefined;
+    const assignedTo = user.role === "finding_owner" && status === "assigned" ? user.email : reportAssignments[observation.id]?.trim() || undefined;
     await action(() => api(`/api/staff-reports/${observation.id}/status`, {
       method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ status, assignedTo, note: "Updated in quality control" }),
     }).then(() => undefined), `Staff report moved to ${status.replaceAll("_", " ")}. The reporter was notified.`);
@@ -456,9 +456,12 @@ function EvidenceView({ data, siteId, siteTargetIds, staffQueue, reviewLinks, se
           const status = observation.workflowStatus ?? "accepted";
           const next = nextWorkflowStatus(status);
           const needsAssignee = next === "assigned";
-          const assignment = reportAssignments[observation.id] ?? observation.assignedTo ?? "";
-          const permitted = next ? canMoveWorkflow(user.role, next) : false;
-          return <article className="workflow-row" key={observation.id}><div><span className={`workflow-chip ${status}`}>{workflowLabel(status)}</span><small>{observation.findingId ?? "Canonical link pending"}</small></div><div><strong>{observation.title}</strong><small>Reported by {observation.createdBy}</small></div>{needsAssignee ? <input aria-label={`Assignee for ${observation.title}`} value={assignment} onChange={(event) => setReportAssignments({ ...reportAssignments, [observation.id]: event.target.value })} placeholder="Finding owner email or name" disabled={!permitted} /> : <span className="workflow-owner">{observation.assignedTo || "Unassigned"}</span>}{next ? <button disabled={busy || !permitted || (needsAssignee && !assignment.trim())} title={permitted ? undefined : `This step requires ${next === "fixed" ? "a Finding Owner" : "a Validator"}.`} onClick={() => onStatus(observation, next)}>{workflowAction(next)}</button> : null}</article>;
+          // A Finding Owner takes work for themselves and leaves work assigned to another person alone; the server enforces both.
+          const ownerActing = user.role === "finding_owner";
+          const heldByAnother = ownerActing && Boolean(observation.assignedTo?.includes("@")) && observation.assignedTo?.toLowerCase() !== user.email.toLowerCase();
+          const assignment = ownerActing && needsAssignee ? user.email : reportAssignments[observation.id] ?? observation.assignedTo ?? "";
+          const permitted = next ? canMoveWorkflow(user.role, next) && !heldByAnother : false;
+          return <article className="workflow-row" key={observation.id}><div><span className={`workflow-chip ${status}`}>{workflowLabel(status)}</span><small>{observation.findingId ?? "Canonical link pending"}</small></div><div><strong>{observation.title}</strong><small>Reported by {observation.createdBy}</small></div>{needsAssignee ? <input aria-label={`Assignee for ${observation.title}`} value={assignment} onChange={(event) => setReportAssignments({ ...reportAssignments, [observation.id]: event.target.value })} placeholder="Finding owner email or name" disabled={!permitted || ownerActing} /> : <span className="workflow-owner">{observation.assignedTo || "Unassigned"}</span>}{next ? <button disabled={busy || !permitted || (needsAssignee && !assignment.trim())} title={permitted ? undefined : heldByAnother ? "Assigned to another Finding Owner; a Validator can reassign it." : `This step requires ${next === "fixed" ? "a Finding Owner" : "a Validator"}.`} onClick={() => onStatus(observation, next)}>{workflowAction(next)}</button> : null}</article>;
         }) : <div className="empty">No accepted staff reports are currently in correction.</div>}
       </div>
 

@@ -167,7 +167,7 @@ export function StaffReporter({ user, initialData }: { user: QualityUser; initia
     setBusy("draft");
     setError("");
     try {
-      const response = await fetch("/api/triage", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ targetId: values.get("targetId"), url: values.get("url"), description: values.get("description"), title: draft?.title, expected: draft?.expected, actual: draft?.observed }) });
+      const response = await fetch("/api/triage", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ targetId: values.get("targetId"), url: values.get("url"), description: values.get("description"), securitySensitive: values.get("securitySensitive"), title: draft?.title, expected: draft?.expected, actual: draft?.observed }) });
       const payload = await response.json() as { ok?: boolean; draft?: TriageDraft; error?: string };
       if (!response.ok || !payload.draft) throw new Error(payload.error ?? "Could not prepare the draft.");
       setDraft(payload.draft);
